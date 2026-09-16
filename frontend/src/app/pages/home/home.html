@@ -1,7 +1,64 @@
 <div class="page">
 
     <header class="topbar">
-        <div class="logo">📚 Lernkarten</div>
+
+        <div class="logo">
+            <i data-lucide="playing-cards"></i>
+            Lernkarten
+        </div>
+
+        <nav class="top-menu">
+            <a routerLink="/">Home</a>
+            <a routerLink="/topics">Themen</a>
+            <a routerLink="/topics">Quiz</a>
+
+            <div class="account-wrapper">
+
+                <button type="button" class="account-button" (click)="toggleAccount()">
+                    <i data-lucide="user"></i>
+                    <span>{{ username }}</span>
+                </button>
+
+                <div class="account-menu" *ngIf="accountOpen">
+
+                    <div class="account-header">
+                        <div class="account-avatar">
+                            {{ username.charAt(0).toUpperCase() }}
+                        </div>
+
+                        <div>
+                            <strong>{{ username }}</strong>
+                            <span>Mein Account</span>
+                        </div>
+                    </div>
+
+                    <div class="account-divider"></div>
+
+                    <a routerLink="/topics">
+                        <i data-lucide="library"></i>
+                        Meine Bibliothek
+                    </a>
+
+                    <a routerLink="/topics">
+                        <i data-lucide="history"></i>
+                        Letzte Themen
+                    </a>
+
+                    <a routerLink="/topics">
+                        <i data-lucide="playing-cards-fan"></i>
+                        Vergangene Karten
+                    </a>
+
+                </div>
+
+            </div>
+
+            <button type="button" class="logout-button-top" (click)="logout()"><i data-lucide="log-out"></i>
+                Ausloggen
+            </button>
+
+        </nav>
+
     </header>
 
     <main class="content">
@@ -12,6 +69,7 @@
         </div>
 
         <div class="stats-row">
+
             <div class="stat-box">
                 <div class="stat-number">{{ topics.length }}</div>
                 <div class="stat-label">Themen</div>
@@ -26,47 +84,60 @@
                 <div class="stat-number">0</div>
                 <div class="stat-label">Quiz absolviert</div>
             </div>
+
         </div>
 
         <h2 class="section-title">Schnellzugriff</h2>
 
         <div class="quick-actions">
+
             <a routerLink="/topics" class="action-tile">
-                <span class="action-icon"><i data-lucide="playing-cards-fan" class="action-icon"></i></span>
+                <span class="action-icon">
+                    <i data-lucide="playing-cards-fan"></i>
+                </span>
+
                 <div class="action-title">Meine Themen</div>
                 <div class="action-subtitle">Alle Themen anzeigen</div>
             </a>
 
-            <a routerLink="/topics" class="action-tile">
-                <span class="action-icon"><i data-lucide="book-open" class="action-icon"></i></span>
+            <a routerLink="/cards" class="action-tile">
+                <span class="action-icon">
+                    <i data-lucide="graduation-cap"></i>
+                </span>
+
                 <div class="action-title">Karteikarten lernen</div>
                 <div class="action-subtitle">Lernen starten</div>
             </a>
 
             <a routerLink="/topics" class="action-tile">
-                <span class="action-icon"><i data-lucide="target" class="action-icon"></i></span>
+                <span class="action-icon">
+                    <i data-lucide="brain"></i>
+                </span>
+
                 <div class="action-title">Quiz starten</div>
                 <div class="action-subtitle">Wissen testen</div>
             </a>
+
         </div>
 
         <div class="recent-section" *ngIf="recentTopics.length > 0">
+
             <h2 class="section-title">Letzte Themen</h2>
 
             <div class="recent-grid">
+
                 <div class="recent-tile" *ngFor="let topic of recentTopics">
+                    <div>{{ topic.name }}</div>
                     <div class="recent-tile-count">0 Karten</div>
                 </div>
+
             </div>
 
             <a routerLink="/topics" class="see-all-link">
                 Alle anzeigen →
             </a>
-        </div>
 
-        <button type="button" class="logout-button" (click)="logout()">
-            Ausloggen
-        </button>
+        </div>
 
     </main>
 

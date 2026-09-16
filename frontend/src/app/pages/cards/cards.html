@@ -1,0 +1,80 @@
+<div class="learn-page">
+
+    <header class="learn-header">
+
+        <a routerLink="/topics" class="back-button">
+            <i data-lucide="arrow-left"></i>
+            <span>Zurück</span>
+        </a>
+
+        <div class="topic-name">
+            {{ topicName }}
+        </div>
+
+        <div class="card-counter">
+            {{ currentIndex + 1 }} / {{ cards.length }}
+        </div>
+
+    </header>
+
+    <main class="learn-content">
+
+        <div class="flashcard" [class.flipped]="isFlipped" (click)="flipCard()">
+
+            <div class="flashcard-inner">
+
+                <div class="flashcard-side flashcard-front">
+                    <span class="card-label">Frage</span>
+
+                    <h1>{{ currentCard.question }}</h1>
+
+                    <span class="flip-hint">
+                        Klicken zum Umdrehen
+                    </span>
+                </div>
+
+                <div class="flashcard-side flashcard-back">
+                    <span class="card-label">Antwort</span>
+
+                    <h1>{{ currentCard.answer }}</h1>
+
+                    <span class="flip-hint">
+                        Klicken zum Umdrehen
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="learning-actions">
+
+            <button type="button" class="learn-button not-learned" (click)="markNotLearned()">
+                ← Noch lernen
+            </button>
+
+            <button type="button" class="learn-button learned" (click)="markLearned()">
+                Kann ich →
+            </button>
+
+        </div>
+
+        <div class="progress-section">
+
+            <div class="progress-text">
+                {{ learnedCount }} von {{ cards.length }} Karten gelernt
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="progress"></div>
+            </div>
+
+            <div class="progress-percent">
+                {{ progress }}%
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
