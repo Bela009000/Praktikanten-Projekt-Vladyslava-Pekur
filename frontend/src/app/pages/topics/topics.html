@@ -1,36 +1,66 @@
 <div class="page-wrapper">
-    <div class="home-container">
-        <h1>Meine Themen</h1>
+  <div class="home-container">
 
-        <form (ngSubmit)="addTopic()" class="add-topic-form">
-            <input type="text" placeholder="Neues Thema (z. B. Mathematik)" [(ngModel)]="newTopicName"
-                name="newTopicName" />
+    <h1>Meine Themen</h1>
 
-            <button type="submit">Hinzufügen</button>
-        </form>
+    <form (ngSubmit)="addTopic()" class="add-topic-form">
 
-        <ul class="topic-list" *ngIf="topics.length > 0">
-            <li *ngFor="let topic of topics" class="topic-item">
+      <input
+        type="text"
+        placeholder="Neues Thema (z. B. Mathematik)"
+        [(ngModel)]="newTopicName"
+        name="newTopicName"
+      />
 
-                <span class="topic-name">
-                    {{ topic.name }}
-                </span>
+      <button type="submit">
+        Hinzufügen
+      </button>
 
-                <div class="topic-actions">
-                    <a [routerLink]="['/topic', topic.id]" class="select-btn">
-                        Öffnen
-                    </a>
+    </form>
 
-                    <button type="button" class="delete-btn" (click)="deleteTopic(topic.id)">
-                        Löschen
-                    </button>
-                </div>
+    <ul
+      class="topic-list"
+      *ngIf="topics.length > 0"
+    >
 
-            </li>
-        </ul>
+      <li
+        *ngFor="let topic of topics"
+        class="topic-item"
+      >
 
-        <p *ngIf="topics.length === 0" class="empty-state">
-            Noch keine Themen vorhanden.
-        </p>
-    </div>
+        <span class="topic-name">
+          {{ topic.name }}
+        </span>
+
+        <div class="topic-actions">
+
+          <a
+            [routerLink]="['/topic', topic.id]"
+            class="select-btn"
+          >
+            Öffnen
+          </a>
+
+          <button
+            type="button"
+            class="delete-btn"
+            (click)="deleteTopic(topic.id)"
+          >
+            Löschen
+          </button>
+
+        </div>
+
+      </li>
+
+    </ul>
+
+    <p
+      *ngIf="topics.length === 0"
+      class="empty-state"
+    >
+      Noch keine Themen vorhanden.
+    </p>
+
+  </div>
 </div>

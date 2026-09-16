@@ -15,6 +15,7 @@ interface Topic {
   styleUrl: './topics.css'
 })
 export class Topics {
+
   topics: Topic[] = [];
   newTopicName = '';
   private nextId = 1;
@@ -26,7 +27,7 @@ export class Topics {
       this.topics = JSON.parse(saved);
 
       this.nextId = this.topics.length > 0
-        ? Math.max(...this.topics.map(t => t.id)) + 1
+        ? Math.max(...this.topics.map(topic => topic.id)) + 1
         : 1;
     }
   }
@@ -46,10 +47,7 @@ export class Topics {
     this.nextId++;
     this.newTopicName = '';
 
-    localStorage.setItem(
-      'topics',
-      JSON.stringify(this.topics)
-    );
+    this.saveTopics();
   }
 
   deleteTopic(id: number) {
@@ -57,6 +55,13 @@ export class Topics {
       topic => topic.id !== id
     );
 
+    localStorage.removeItem(`words_${id}`);
+    localStorage.removeItem(`cards_progress_${id}`);
+
+    this.saveTopics();
+  }
+
+  private saveTopics() {
     localStorage.setItem(
       'topics',
       JSON.stringify(this.topics)

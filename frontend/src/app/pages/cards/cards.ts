@@ -1,7 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { createIcons, ArrowLeft } from 'lucide';
+import { RouterLink, ActivatedRoute } from '@angular/router';
+
+interface Word {
+  id: number;
+  word: string;
+  translation: string;
+}
 
 interface Flashcard {
   id: number;
@@ -17,115 +22,169 @@ interface Flashcard {
   styleUrl: './cards.css'
 })
 export class Cards {
-  topicName = 'Mathematik';
 
-  cards: Flashcard[] = [
-    {
-      id: 1,
-      question: 'Was ist HTML?',
-      answer: 'HyperText Markup Language',
-      learned: false
-    },
-    {
-      id: 2,
-      question: 'Was bedeutet CSS?',
-      answer: 'Cascading Style Sheets',
-      learned: false
-    },
-    {
-      id: 3,
-      question: 'Was ist TypeScript?',
-      answer: 'Eine Programmiersprache, die auf JavaScript basiert.',
-      learned: false
-    },
-    {
-      id: 4,
-      question: 'Was ist Angular?',
-      answer: 'Ein Framework zur Entwicklung von Webanwendungen.',
-      learned: false
-    },
-    {
-      id: 5,
-      question: 'Was ist eine Variable?',
-      answer: 'Ein Speicherplatz, in dem ein Wert gespeichert werden kann.',
-      learned: false
-    },
-    {
-      id: 6,
-      question: 'Was ist eine Funktion?',
-      answer: 'Ein wiederverwendbarer Block von Code.',
-      learned: false
-    },
-    {
-      id: 7,
-      question: 'Was ist eine API?',
-      answer: 'Eine Schnittstelle, über die Programme miteinander kommunizieren.',
-      learned: false
-    },
-    {
-      id: 8,
-      question: 'Was ist JSON?',
-      answer: 'Ein leichtgewichtiges Format zum Speichern und Übertragen von Daten.',
-      learned: false
-    },
-    {
-      id: 9,
-      question: 'Was ist eine Datenbank?',
-      answer: 'Ein System zur strukturierten Speicherung von Daten.',
-      learned: false
-    },
-    {
-      id: 10,
-      question: 'Was bedeutet HTTP?',
-      answer: 'Hypertext Transfer Protocol.',
-      learned: false
-    }
-  ];
+  topicId = 0;
+  topicName = '';
+
+  cards: Flashcard[] = [];
+  allCards: Flashcard[] = [];
 
   currentIndex = 0;
   isFlipped = false;
+  isFinished = false;
 
-  get currentCard(): Flashcard {
+  constructor(private route: ActivatedRoute) {}
+
+  ngOnInit() {
+    this.topicId = Number(
+      this.route.snapshot.paramMap.get('id')
+    );
+
+    this.loadTopic();
+    this.loadCards();
+  }
+
+  private loadTopic() {
+    const savedTopics = localStorage.getItem('topics');
+
+    if (!savedTopics) {
+      return;
+    }
+
+    const topics = JSON.parse(savedTopics);
+
+    const topic = topics.find(
+      (topic: any) => topic.id === this.topicId
+    );
+
+    if (topic) {
+      this.topicName = topic.name;
+    }
+  }
+
+  private loadCards() {
+    const savedWords = localStorage.getItem(
+      `words_${this.topicId}`
+    );
+
+    if (!savedWords) {
+      return;
+    }
+
+    const words: Word[] = JSON.parse(savedWords);
+
+    const savedProgress = localStorage.getItem(
+      `cards_progress_${this.topicId}`
+    );
+
+    const learnedIds: number[] = savedProgress
+      ? JSON.parse(savedProgress)
+      : [];
+
+    this.allCards = words.map(word => ({
+      id: word.id,
+      question: word.word,
+      answer: word.translation,
+      learned: learnedIds.includes(word.id)
+    }));
+
+    this.cards = [...this.allCards];
+  }
+
+  get currentCard(): Flashcard | undefined {
     return this.cards[this.currentIndex];
   }
 
   get learnedCount(): number {
-    return this.cards.filter(card => card.learned).length;
+    return this.allCards.filter(
+      card => card.learned
+    ).length;
   }
 
   get progress(): number {
-    return Math.round((this.learnedCount / this.cards.length) * 100);
-  }
+    if (this.allCards.length === 0) {
+      return 0;
+    }
 
-  ngAfterViewInit() {
-    createIcons({
-      icons: {
-        ArrowLeft
-      }
-    });
+    return Math.round(
+      (this.learnedCount / this.allCards.length) * 100
+    );
   }
 
   flipCard() {
-    this.isFlipped = !this.isFlipped;
+    if (!this.isFinished && this.currentCard) {
+      this.isFlipped = !this.isFlipped;
+    }
   }
 
   markNotLearned() {
+    if (!this.currentCard) {
+      return;
+    }
+
     this.currentCard.learned = false;
+
+    this.saveProgress();
     this.nextCard();
   }
 
   markLearned() {
+    if (!this.currentCard) {
+      return;
+    }
+
     this.currentCard.learned = true;
+
+    this.saveProgress();
     this.nextCard();
   }
 
-  nextCard() {
+  private nextCard() {
     this.isFlipped = false;
 
     if (this.currentIndex < this.cards.length - 1) {
       this.currentIndex++;
     } else {
-      this.currentIndex = 0;
+      this.isFinished = true;
     }
+  }
+
+  restart() {
+    this.allCards.forEach(card => {
+      card.learned = false;
+    });
+
+    this.saveProgress();
+
+    this.cards = [...this.allCards];
+    this.currentIndex = 0;
+    this.isFlipped = false;
+    this.isFinished = false;
+  }
+
+  continueUnknown() {
+    const unknownCards = this.allCards.filter(
+      card => !card.learned
+    );
+
+    if (unknownCards.length === 0) {
+      return;
+    }
+
+    this.cards = [...unknownCards];
+    this.currentIndex = 0;
+    this.isFlipped = false;
+    this.isFinished = false;
+  }
+
+  private saveProgress() {
+    const learnedIds = this.allCards
+      .filter(card => card.learned)
+      .map(card => card.id);
+
+    localStorage.setItem(
+      `cards_progress_${this.topicId}`,
+      JSON.stringify(learnedIds)
+    );
   }
 }

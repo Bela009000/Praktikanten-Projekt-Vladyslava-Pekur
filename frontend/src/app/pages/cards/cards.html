@@ -1,80 +1,150 @@
-<div class="learn-page">
+<div class="cards-page">
 
-    <header class="learn-header">
+    <header class="cards-header">
 
         <a routerLink="/topics" class="back-button">
-            <i data-lucide="arrow-left"></i>
-            <span>Zurück</span>
+            ← Zurück
         </a>
 
-        <div class="topic-name">
-            {{ topicName }}
+        <div class="cards-title">
+            <h1>{{ topicName }}</h1>
+            <span *ngIf="cards.length > 0">
+                {{ currentIndex + 1 }} / {{ cards.length }}
+            </span>
         </div>
 
-        <div class="card-counter">
-            {{ currentIndex + 1 }} / {{ cards.length }}
-        </div>
+        <div></div>
 
     </header>
 
-    <main class="learn-content">
 
-        <div class="flashcard" [class.flipped]="isFlipped" (click)="flipCard()">
+    <main class="cards-content" *ngIf="cards.length > 0 && !isFinished">
 
-            <div class="flashcard-inner">
+        <div class="flashcard-container" (click)="flipCard()">
+
+            <div class="flashcard" [class.flipped]="isFlipped">
 
                 <div class="flashcard-side flashcard-front">
-                    <span class="card-label">Frage</span>
 
-                    <h1>{{ currentCard.question }}</h1>
-
-                    <span class="flip-hint">
-                        Klicken zum Umdrehen
+                    <span class="card-label">
+                        Frage
                     </span>
+
+                    <div class="card-text">
+                        {{ currentCard.question }}
+                    </div>
+
+                    <span class="card-hint">
+                        Klicken, um die Antwort zu sehen
+                    </span>
+
                 </div>
 
+
                 <div class="flashcard-side flashcard-back">
-                    <span class="card-label">Antwort</span>
 
-                    <h1>{{ currentCard.answer }}</h1>
-
-                    <span class="flip-hint">
-                        Klicken zum Umdrehen
+                    <span class="card-label">
+                        Antwort
                     </span>
+
+                    <div class="card-text">
+                        {{ currentCard.answer }}
+                    </div>
+
                 </div>
 
             </div>
 
         </div>
 
+
         <div class="learning-actions">
 
-            <button type="button" class="learn-button not-learned" (click)="markNotLearned()">
+            <button type="button" class="not-learned-button" (click)="$event.stopPropagation(); markNotLearned()">
                 ← Noch lernen
             </button>
 
-            <button type="button" class="learn-button learned" (click)="markLearned()">
+            <button type="button" class="learned-button" (click)="$event.stopPropagation(); markLearned()">
                 Kann ich →
             </button>
 
         </div>
 
+
         <div class="progress-section">
 
-            <div class="progress-text">
-                {{ learnedCount }} von {{ cards.length }} Karten gelernt
+            <div class="progress-info">
+                <span>
+                    {{ learnedCount }} von {{ allCards.length }} Karten gelernt
+                </span>
+
+                <span>
+                    {{ progress }}%
+                </span>
             </div>
 
             <div class="progress-bar">
                 <div class="progress-fill" [style.width.%]="progress"></div>
             </div>
 
-            <div class="progress-percent">
+        </div>
+
+    </main>
+
+
+    <main class="empty-cards" *ngIf="cards.length === 0">
+        <h2>Keine Karten vorhanden</h2>
+
+        <p>
+            Dieses Thema enthält noch keine Wörter.
+        </p>
+
+        <a routerLink="/topics">
+            ← Zurück zu den Themen
+        </a>
+    </main>
+
+
+    <div class="finish-overlay" *ngIf="isFinished">
+
+        <div class="finish-modal">
+
+            <h2>Lernen abgeschlossen!</h2>
+
+            <p class="finish-topic">
+                {{ topicName }}
+            </p>
+
+            <div class="result-percent">
                 {{ progress }}%
+            </div>
+
+            <p class="result-text">
+                {{ learnedCount }} von {{ allCards.length }} Karten gelernt
+            </p>
+
+            <div class="result-progress">
+
+                <div class="result-progress-fill" [style.width.%]="progress"></div>
+
+            </div>
+
+
+            <div class="finish-actions">
+
+                <button type="button" class="restart-button" (click)="restart()">
+                    Nochmal starten
+                </button>
+
+                <button type="button" class="unknown-button" (click)="continueUnknown()"
+                    [disabled]="learnedCount === allCards.length">
+                    Nur unbekannte Karten
+                </button>
+
             </div>
 
         </div>
 
-    </main>
+    </div>
 
 </div>
