@@ -1,66 +1,75 @@
-<div class="page-wrapper">
-  <div class="home-container">
+<div class="topics-page">
 
-    <h1>Meine Themen</h1>
+    <div class="topics-container">
 
-    <form (ngSubmit)="addTopic()" class="add-topic-form">
+        <a routerLink="/home" class="back-button">
+            ← Zurück zum Hauptmenü
+        </a>
 
-      <input
-        type="text"
-        placeholder="Neues Thema (z. B. Mathematik)"
-        [(ngModel)]="newTopicName"
-        name="newTopicName"
-      />
+        <div class="topics-title">
+            <h1>Meine Themen</h1>
+        </div>
 
-      <button type="submit">
-        Hinzufügen
-      </button>
+        <form class="add-topic-form" (ngSubmit)="addTopic()">
 
-    </form>
+            <input type="text" placeholder="Neues Thema (z. B. Mathematik)" [(ngModel)]="newTopicName"
+                name="newTopicName" />
 
-    <ul
-      class="topic-list"
-      *ngIf="topics.length > 0"
-    >
+            <button type="submit">
+                + Thema hinzufügen
+            </button>
 
-      <li
-        *ngFor="let topic of topics"
-        class="topic-item"
-      >
+        </form>
 
-        <span class="topic-name">
-          {{ topic.name }}
-        </span>
 
-        <div class="topic-actions">
+        <div class="topic-list" *ngIf="topics.length > 0">
 
-          <a
-            [routerLink]="['/topic', topic.id]"
-            class="select-btn"
-          >
-            Öffnen
-          </a>
+            <div class="topic-card" *ngFor="let topic of topics">
 
-          <button
-            type="button"
-            class="delete-btn"
-            (click)="deleteTopic(topic.id)"
-          >
-            Löschen
-          </button>
+                <div class="topic-info">
+
+                    <h2>
+                        {{ topic.name }}
+                    </h2>
+
+                    <span>
+                        {{ getWordCount(topic.id) }} Wörter
+                    </span>
+
+                </div>
+
+
+                <div class="topic-actions">
+
+                    <a [routerLink]="['/cards', topic.id]" class="open-button">
+                        Öffnen
+                    </a>
+
+                    <a [routerLink]="['/lernmodus', topic.id]" class="learning-button">
+                        Lernmodus
+                    </a>
+
+                    <button type="button" class="delete-button" (click)="deleteTopic(topic.id)">
+                        Löschen
+                    </button>
+
+                </div>
+
+            </div>
 
         </div>
 
-      </li>
 
-    </ul>
+        <div class="empty-state" *ngIf="topics.length === 0">
 
-    <p
-      *ngIf="topics.length === 0"
-      class="empty-state"
-    >
-      Noch keine Themen vorhanden.
-    </p>
+            <h2>Noch keine Themen</h2>
 
-  </div>
+            <p>
+                Erstelle dein erstes Thema und füge Wörter hinzu.
+            </p>
+
+        </div>
+
+    </div>
+
 </div>

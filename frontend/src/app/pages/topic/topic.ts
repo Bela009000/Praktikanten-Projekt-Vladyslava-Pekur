@@ -1,70 +1,139 @@
 import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
-interface Topic {
+interface TopicData {
   id: number;
   name: string;
 }
 
-@Component({
-  selector: 'app-topics',
-  imports: [FormsModule, CommonModule, RouterLink],
-  templateUrl: './topics.html',
-  styleUrl: './topics.css'
-})
-export class Topics {
+interface Word {
+  id: number;
+  word: string;
+  translation: string;
+}
 
-  topics: Topic[] = [];
-  newTopicName = '';
-  private nextId = 1;
+@Component({
+  selector: 'app-topic',
+  imports: [CommonModule, FormsModule, RouterLink],
+  templateUrl: './topic.html',
+  styleUrl: './topic.css'
+})
+export class Topic {
+
+  topic: TopicData | null = null;
+  words: Word[] = [];
+
+  newWord = '';
+  newTranslation = '';
+  wordList = '';
+
+  constructor(private route: ActivatedRoute) {}
 
   ngOnInit() {
-    const saved = localStorage.getItem('topics');
+    const topicId = Number(
+      this.route.snapshot.paramMap.get('id')
+    );
 
-    if (saved) {
-      this.topics = JSON.parse(saved);
+    const savedTopics = localStorage.getItem('topics');
 
-      this.nextId = this.topics.length > 0
-        ? Math.max(...this.topics.map(topic => topic.id)) + 1
-        : 1;
+    if (savedTopics) {
+      const topics: TopicData[] = JSON.parse(savedTopics);
+
+      this.topic = topics.find(
+        topic => topic.id === topicId
+      ) || null;
+    }
+
+    const savedWords = localStorage.getItem(
+      `words_${topicId}`
+    );
+
+    if (savedWords) {
+      this.words = JSON.parse(savedWords);
     }
   }
 
-  addTopic() {
-    const name = this.newTopicName.trim();
-
-    if (name === '') {
+  addWord() {
+    if (!this.topic) {
       return;
     }
 
-    this.topics.push({
-      id: this.nextId,
-      name: name
+    const word = this.newWord.trim();
+    const translation = this.newTranslation.trim();
+
+    if (word === '' || translation === '') {
+      return;
+    }
+
+    this.words.push({
+      id: Date.now(),
+      word: word,
+      translation: translation
     });
 
-    this.nextId++;
-    this.newTopicName = '';
+    this.saveWords();
 
-    this.saveTopics();
+    this.newWord = '';
+    this.newTranslation = '';
   }
 
-  deleteTopic(id: number) {
-    this.topics = this.topics.filter(
-      topic => topic.id !== id
+  addWordList() {
+    if (!this.topic || this.wordList.trim() === '') {
+      return;
+    }
+
+    const lines = this.wordList
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line !== '');
+
+    for (const line of lines) {
+      const parts = line.split(/\s*[-–—]\s*/);
+
+      if (parts.length < 2) {
+        continue;
+      }
+
+      const word = parts[0].trim();
+      const translation = parts.slice(1).join(' - ').trim();
+
+      if (word === '' || translation === '') {
+        continue;
+      }
+
+      this.words.push({
+        id: Date.now() + Math.random(),
+        word: word,
+        translation: translation
+      });
+    }
+
+    this.saveWords();
+    this.wordList = '';
+  }
+
+  deleteWord(id: number) {
+    if (!this.topic) {
+      return;
+    }
+
+    this.words = this.words.filter(
+      word => word.id !== id
     );
 
-    localStorage.removeItem(`words_${id}`);
-    localStorage.removeItem(`cards_progress_${id}`);
-
-    this.saveTopics();
+    this.saveWords();
   }
 
-  private saveTopics() {
+  private saveWords() {
+    if (!this.topic) {
+      return;
+    }
+
     localStorage.setItem(
-      'topics',
-      JSON.stringify(this.topics)
+      `words_${this.topic.id}`,
+      JSON.stringify(this.words)
     );
   }
 }

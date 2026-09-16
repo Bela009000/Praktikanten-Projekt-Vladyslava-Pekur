@@ -91,9 +91,10 @@ export class Cards {
     this.cards = [...this.allCards];
   }
 
-  get currentCard(): Flashcard | undefined {
-    return this.cards[this.currentIndex];
-  }
+  get currentCard(): Flashcard {
+  return this.cards[this.currentIndex];
+}
+  
 
   get learnedCount(): number {
     return this.allCards.filter(

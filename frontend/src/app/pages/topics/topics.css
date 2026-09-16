@@ -1,41 +1,60 @@
-.page-wrapper {
+* {
+  box-sizing: border-box;
+}
+
+.topics-page {
   min-height: 100vh;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: sans-serif;
+  background: linear-gradient(135deg, #faf7ff, #f5f3ff, #ffffff);
+  font-family: 'Open Sans', sans-serif;
+  color: #4c1d95;
 }
 
-.home-container {
+.topics-container {
   width: 100%;
-  max-width: 480px;
-  padding: 40px 36px;
-  border-radius: 12px;
-  background-color: #ffffff;
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.15);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 35px 25px 60px;
 }
 
-.home-container h1 {
-  margin: 0 0 24px;
-  text-align: center;
+.back-button {
+  display: inline-block;
+  margin-bottom: 40px;
+  color: #7c3aed;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.back-button:hover {
   color: #5b21b6;
-  font-size: 24px;
+}
+
+.topics-title {
+  margin-bottom: 35px;
+  text-align: center;
+}
+
+.topics-title h1 {
+  margin: 0;
+  color: #4c1d95;
+  font-size: 38px;
 }
 
 .add-topic-form {
   display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 40px;
 }
 
 .add-topic-form input {
   flex: 1;
-  padding: 10px 12px;
+  padding: 17px;
   border: 1px solid #d8b4fe;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 10px;
   outline: none;
+  font-family: inherit;
+  font-size: 15px;
+  background: white;
 }
 
 .add-topic-form input:focus {
@@ -43,76 +62,149 @@
 }
 
 .add-topic-form button {
-  padding: 10px 16px;
-  background-color: #7c3aed;
+  padding: 17px 26px;
+  background: #7c3aed;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
 }
 
 .add-topic-form button:hover {
-  background-color: #6d28d9;
+  background: #6d28d9;
 }
 
 .topic-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.topic-item {
+.topic-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
+  min-height: 220px;
+  padding: 40px 45px;
+  background: white;
   border: 1px solid #ede9fe;
-  border-radius: 8px;
-  margin-bottom: 10px;
+  border-radius: 22px;
+  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);
 }
 
-.topic-name {
-  font-weight: 600;
+.topic-info h2 {
+  margin: 0 0 12px;
   color: #4c1d95;
+  font-size: 30px;
+}
+
+.topic-info span {
+  color: #9ca3af;
+  font-size: 16px;
 }
 
 .topic-actions {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 14px;
 }
 
-.select-btn {
-  padding: 6px 12px;
-  background-color: #ede9fe;
-  color: #5b21b6;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
+.open-button,
+.learning-button,
+.delete-button {
+  min-width: 130px;
+  padding: 15px 22px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
   cursor: pointer;
 }
 
-.select-btn:hover {
-  background-color: #ddd6fe;
+.open-button {
+  background: #7c3aed;
+  color: white;
 }
 
-.delete-btn {
-  padding: 6px 12px;
-  background-color: transparent;
+.open-button:hover {
+  background: #6d28d9;
+}
+
+.learning-button {
+  background: #f3e8ff;
+  color: #6d28d9;
+}
+
+.learning-button:hover {
+  background: #e9d5ff;
+}
+
+.delete-button {
+  background: white;
   color: #dc2626;
   border: 1px solid #fecaca;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
 }
 
-.delete-btn:hover {
-  background-color: #fef2f2;
+.delete-button:hover {
+  background: #fef2f2;
 }
 
 .empty-state {
+  padding: 70px 30px;
+  background: white;
+  border: 1px solid #ede9fe;
+  border-radius: 20px;
   text-align: center;
+}
+
+.empty-state h2 {
+  margin: 0 0 10px;
+  color: #5b21b6;
+}
+
+.empty-state p {
+  margin: 0;
   color: #9ca3af;
   font-size: 14px;
+}
+
+@media (max-width: 800px) {
+  .topics-container {
+    padding: 25px 16px 40px;
+  }
+
+  .topics-title h1 {
+    font-size: 30px;
+  }
+
+  .add-topic-form {
+    flex-direction: column;
+  }
+
+  .topic-card {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 30px;
+    padding: 30px;
+  }
+
+  .topic-info h2 {
+    font-size: 26px;
+  }
+
+  .topic-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .open-button,
+  .learning-button,
+  .delete-button {
+    flex: 1;
+  }
 }
