@@ -14,8 +14,10 @@
         <div class="account-wrapper">
 
             <button type="button" class="account-button" (click)="toggleAccount()">
+
                 <i data-lucide="user"></i>
                 <span>{{ username }}</span>
+
             </button>
 
             <div class="account-menu" *ngIf="accountOpen">
@@ -23,7 +25,7 @@
                 <div class="account-header">
 
                     <div class="account-avatar">
-                        {{ username.charAt(0).toUpperCase() }}
+                        {{ userInitial }}
                     </div>
 
                     <div>
@@ -37,17 +39,13 @@
 
                 <a routerLink="/topics">
                     <i data-lucide="library"></i>
-                    Meine Bibliothek
+                    <span>Meine Bibliothek</span>
                 </a>
 
-                <a routerLink="/topics">
-                    <i data-lucide="history"></i>
-                    Letzte Themen
-                </a>
 
                 <a routerLink="/my-cards">
                     <i data-lucide="playing-cards-fan"></i>
-                    Vergangene Karten
+                    <span>Vergangene Karten</span>
                 </a>
 
             </div>
@@ -55,8 +53,10 @@
         </div>
 
         <button type="button" class="logout-button-top" (click)="logout()">
+
             <i data-lucide="log-out"></i>
-            Ausloggen
+            <span>Ausloggen</span>
+
         </button>
 
     </nav>

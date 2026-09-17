@@ -3,12 +3,6 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
-import {
-  createIcons,
-  Eye,
-  EyeOff
-} from 'lucide';
-
 @Component({
   imports: [FormsModule, RouterLink, CommonModule],
   selector: 'app-login',
@@ -27,25 +21,8 @@ export class Login {
 
   constructor(private router: Router) {}
 
-  ngOnInit() {
-    this.updateIcons();
-  }
-
   togglePassword() {
     this.showPassword = !this.showPassword;
-
-    setTimeout(() => {
-      this.updateIcons();
-    });
-  }
-
-  private updateIcons() {
-    createIcons({
-      icons: {
-        Eye,
-        EyeOff
-      }
-    });
   }
 
   onSubmit() {

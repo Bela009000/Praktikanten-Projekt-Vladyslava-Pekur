@@ -1,12 +1,25 @@
+:root {
+  --bg-1: #faf7ff;
+  --bg-2: #f5f3ff;
+  --bg-3: #ffffff;
+  --primary: #7c3aed;
+  --primary-dark: #6d28d9;
+  --primary-deep: #4c1d95;
+  --primary-soft: #f3e8ff;
+  --primary-light: #ede9fe;
+  --primary-muted: #9ca3af;
+  --white: #ffffff;
+}
+
 * {
   box-sizing: border-box;
 }
 
 .cards-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #faf7ff, #f5f3ff, #ffffff);
+  background: linear-gradient(135deg, var(--bg-1), var(--bg-2), var(--bg-3));
   font-family: 'Open Sans', sans-serif;
-  color: #4c1d95;
+  color: var(--primary-deep);
 }
 
 .cards-header {
@@ -25,7 +38,7 @@
 .back-button {
   width: fit-content;
 
-  color: white;
+  color: var(--white);
   text-decoration: none;
 
   font-size: 14px;
@@ -148,7 +161,7 @@
 }
 
 .card-text {
-  color: #4c1d95;
+  color: var(--primary-deep);
 
   font-size: 34px;
   font-weight: 700;
@@ -160,7 +173,7 @@
   position: absolute;
   bottom: 25px;
 
-  color: #9ca3af;
+  color: var(--primary-muted);
   font-size: 12px;
 }
 
@@ -222,8 +235,8 @@
 }
 
 .not-learned-button {
-  background: white;
-  color: #7c3aed;
+  background: var(--white);
+  color: var(--primary);
 
   border: 1px solid #c4b5fd;
 }
@@ -233,8 +246,8 @@
 }
 
 .learned-button {
-  background: #7c3aed;
-  color: white;
+  background: var(--primary);
+  color: var(--white);
 
   border: none;
 
@@ -242,7 +255,7 @@
 }
 
 .learned-button:hover {
-  background: #6d28d9;
+  background: var(--primary-dark);
 }
 
 .progress-section {

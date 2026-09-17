@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
-import { RouterOutlet, RouterLink } from '@angular/router';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Router, RouterOutlet, RouterLink, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { filter } from 'rxjs/operators';
 
 import {
   createIcons,
@@ -9,48 +10,55 @@ import {
   Library,
   History,
   PlayingCardsFan,
-  LogOut
+  LogOut,
+  GraduationCap,
+  Brain
 } from 'lucide';
 
 @Component({
   selector: 'app-root',
-  styleUrl: './app.css',
+  standalone: true,
+  imports: [RouterOutlet, RouterLink, CommonModule],
   templateUrl: './app.html',
-  imports: [RouterOutlet, RouterLink, CommonModule]
+  styleUrl: './app.css'
 })
-export class App {
+export class App implements OnInit, AfterViewInit {
 
   username = '';
   accountOpen = false;
 
-  ngOnInit() {
-    const savedUser = localStorage.getItem('currentUser');
+  constructor(private router: Router) {}
 
-    if (savedUser) {
-      this.username = savedUser;
-    }
+  ngOnInit(): void {
+    this.username = localStorage.getItem('currentUser') || '';
 
-    setTimeout(() => {
-      this.renderIcons();
-    });
-  }
-
-  toggleAccount() {
-    this.accountOpen = !this.accountOpen;
-
-    if (this.accountOpen) {
-      setTimeout(() => {
+    this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe(() => {
         this.renderIcons();
       });
-    }
   }
 
-  logout() {
+  ngAfterViewInit(): void {
+    this.renderIcons();
+  }
+
+  toggleAccount(): void {
+    this.accountOpen = !this.accountOpen;
+  }
+
+  logout(): void {
     localStorage.removeItem('currentUser');
-    window.location.href = '/login';
+    this.router.navigate(['/login']);
   }
 
-  private renderIcons() {
+  get userInitial(): string {
+    return this.username
+      ? this.username.charAt(0).toUpperCase()
+      : '?';
+  }
+
+  private renderIcons(): void {
     createIcons({
       icons: {
         PlayingCards,
@@ -58,7 +66,9 @@ export class App {
         Library,
         History,
         PlayingCardsFan,
-        LogOut
+        LogOut,
+        GraduationCap,
+        Brain
       }
     });
   }

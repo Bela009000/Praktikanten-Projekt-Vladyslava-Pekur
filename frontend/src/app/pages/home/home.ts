@@ -2,20 +2,6 @@ import { Component } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
-import {
-  createIcons,
-  PlayingCards,
-  PlayingCardsFan,
-  GraduationCap,
-  Brain,
-  User,
-  Library,
-  History,
-  LogOut
-} from 'lucide';
-
-import '@fontsource/open-sans';
-
 interface Topic {
   id: number;
   name: string;
@@ -42,21 +28,6 @@ export class Home {
       this.topics = JSON.parse(saved);
       this.recentTopics = this.topics.slice(-3).reverse();
     }
-  }
-
-  ngAfterViewInit() {
-    createIcons({
-      icons: {
-        PlayingCards,
-        PlayingCardsFan,
-        GraduationCap,
-        Brain,
-        User,
-        Library,
-        History,
-        LogOut
-      }
-    });
   }
 
   toggleAccount() {
