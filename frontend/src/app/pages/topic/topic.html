@@ -1,0 +1,128 @@
+<div class="topic-page">
+
+    <header class="topic-header">
+
+        <a routerLink="/topics" class="back-button">
+            ← Zurück
+        </a>
+
+        <h1>{{ topic?.name }}</h1>
+
+        <div></div>
+
+    </header>
+
+
+    <main class="topic-content">
+
+        <section class="add-word-card">
+
+            <h2>Wort hinzufügen</h2>
+
+            <form class="word-form" (ngSubmit)="addWord()">
+
+                <div class="form-group">
+
+                    <label>Frage/Wort</label>
+
+                    <input type="text" [(ngModel)]="newWord" name="newWord" placeholder="apple" />
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>Antwort/Übersetzung</label>
+
+                    <input type="text" [(ngModel)]="newTranslation" name="newTranslation" placeholder="Apfel" />
+
+                </div>
+
+
+                <button type="submit">
+                    + Hinzufügen
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <section class="add-list-card">
+
+            <h2>Mehrere Wörter hinzufügen</h2>
+
+            <p class="hint">
+                Ein Wort pro Zeile im Format:
+                <strong>Wort - Übersetzung</strong>
+            </p>
+
+            <textarea [(ngModel)]="wordList" name="wordList" placeholder="apple - Apfel
+house - Haus
+car - Auto
+book - Buch"></textarea>
+
+            <button type="button" class="list-button" (click)="addWordList()">
+                Liste hinzufügen
+            </button>
+
+        </section>
+
+
+        <section class="words-section">
+
+            <div class="section-header">
+
+                <h2>Meine Wörter</h2>
+
+                <span>
+                    {{ words.length }} Wörter
+                </span>
+
+            </div>
+
+
+            <div class="word-list" *ngIf="words.length > 0">
+
+                <div class="word-item" *ngFor="let word of words">
+
+                    <div class="word-content">
+
+                        <span class="word">
+                            {{ word.word }}
+                        </span>
+
+                        <span class="translation">
+                            {{ word.translation }}
+                        </span>
+
+                    </div>
+
+
+                    <button type="button" class="delete-button" (click)="deleteWord(word.id)">
+                        Löschen
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div class="empty-state" *ngIf="words.length === 0">
+                Noch keine Wörter vorhanden.
+            </div>
+
+        </section>
+
+
+        <div class="learning-button-container" *ngIf="words.length > 0">
+
+            <a [routerLink]="['/cards', topic?.id]" class="learning-button">
+                Zu Lernkarten →
+            </a>
+
+        </div>
+
+    </main>
+
+</div>

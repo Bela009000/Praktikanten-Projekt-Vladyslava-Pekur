@@ -2,43 +2,88 @@
   box-sizing: border-box;
 }
 
-.page-wrapper {
+.topics-page {
   min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #faf7ff, #f5f3ff, #ffffff);
+  font-family: 'Open Sans', sans-serif;
+  color: #4c1d95;
+}
+
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.3;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.blob-1 {
+  width: 420px;
+  height: 420px;
+  top: -120px;
+  right: -100px;
+  background: radial-gradient(circle, #c4b5fd, transparent 70%);
+}
+
+.blob-2 {
+  width: 380px;
+  height: 380px;
+  bottom: -140px;
+  left: -120px;
+  background: radial-gradient(circle, #a855f7, transparent 70%);
 }
 
 .topics-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 720px;
-  padding: 40px 36px;
-  border-radius: 12px;
-  background-color: #ffffff;
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.15);
-  font-family: sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 35px 25px 60px;
 }
 
-.topics-container h1 {
-  margin: 0 0 24px;
-  text-align: center;
+.back-button {
+  display: inline-block;
+  margin-bottom: 40px;
+  color: #7c3aed;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.back-button:hover {
   color: #5b21b6;
-  font-size: 24px;
+}
+
+.topics-title {
+  margin-bottom: 35px;
+  text-align: center;
+}
+
+.topics-title h1 {
+  margin: 0;
+  color: #4c1d95;
+  font-size: 38px;
 }
 
 .add-topic-form {
   display: flex;
-  gap: 8px;
-  margin-bottom: 28px;
+  gap: 12px;
+  margin-bottom: 40px;
 }
 
 .add-topic-form input {
   flex: 1;
-  padding: 10px 12px;
+  padding: 17px;
   border: 1px solid #d8b4fe;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 10px;
   outline: none;
+  font-family: inherit;
+  font-size: 15px;
+  background: white;
 }
 
 .add-topic-form input:focus {
@@ -46,92 +91,199 @@
 }
 
 .add-topic-form button {
-  padding: 10px 16px;
-  background-color: #7c3aed;
+  padding: 17px 26px;
+  background: #7c3aed;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 14px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
 }
 
 .add-topic-form button:hover {
-  background-color: #6d28d9;
+  background: #6d28d9;
 }
 
-.topic-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px;
-}
-
-.topic-tile {
-  position: relative;
-  padding: 20px 16px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
-  color: white;
+.topic-list {
   display: flex;
   flex-direction: column;
+  gap: 24px;
+}
+
+.topic-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 220px;
+  padding: 40px 45px;
+  background: white;
+  border: 1px solid #ede9fe;
+  border-radius: 22px;
+  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.topic-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(124, 58, 237, 0.16);
+}
+
+.topic-info {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.topic-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  color: white;
+  font-size: 26px;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: #7c3aed;
+}
+
+.topic-card:nth-child(5n + 1) .topic-avatar {
+  background: #7c3aed;
+}
+
+.topic-card:nth-child(5n + 2) .topic-avatar {
+  background: #a855f7;
+}
+
+.topic-card:nth-child(5n + 3) .topic-avatar {
+  background: #c026d3;
+}
+
+.topic-card:nth-child(5n + 4) .topic-avatar {
+  background: #8b5cf6;
+}
+
+.topic-card:nth-child(5n + 5) .topic-avatar {
+  background: #6d28d9;
+}
+
+.topic-info h2 {
+  margin: 0 0 12px;
+  color: #4c1d95;
+  font-size: 30px;
+}
+
+.topic-info span {
+  color: #9ca3af;
+  font-size: 16px;
+}
+
+.topic-actions {
+  display: flex;
   align-items: center;
   gap: 14px;
-  box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);
 }
 
-.topic-tile-name {
-  font-size: 16px;
-  font-weight: 700;
+.open-button,
+.learning-button,
+.delete-button {
+  min-width: 130px;
+  padding: 15px 22px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
   text-align: center;
-  word-break: break-word;
-}
-
-.delete-icon {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(255, 255, 255, 0.25);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  font-size: 12px;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.delete-icon:hover {
-  background-color: rgba(255, 255, 255, 0.4);
-}
-
-.topic-tile-actions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.tile-btn {
-  padding: 6px 10px;
-  background-color: rgba(255, 255, 255, 0.15);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 6px;
-  font-size: 12px;
   cursor: pointer;
 }
 
-.tile-btn:hover {
-  background-color: rgba(255, 255, 255, 0.3);
+.open-button {
+  background: #7c3aed;
+  color: white;
+}
+
+.open-button:hover {
+  background: #6d28d9;
+}
+
+.learning-button {
+  background: #f3e8ff;
+  color: #6d28d9;
+}
+
+.learning-button:hover {
+  background: #e9d5ff;
+}
+
+.delete-button {
+  background: white;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.delete-button:hover {
+  background: #fef2f2;
 }
 
 .empty-state {
+  position: relative;
+  z-index: 1;
+  padding: 70px 30px;
+  background: white;
+  border: 1px solid #ede9fe;
+  border-radius: 20px;
   text-align: center;
+}
+
+.empty-state h2 {
+  margin: 0 0 10px;
+  color: #5b21b6;
+}
+
+.empty-state p {
+  margin: 0;
   color: #9ca3af;
   font-size: 14px;
+}
+
+@media (max-width: 800px) {
+  .topics-container {
+    padding: 25px 16px 40px;
+  }
+
+  .topics-title h1 {
+    font-size: 30px;
+  }
+
+  .add-topic-form {
+    flex-direction: column;
+  }
+
+  .topic-card {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 30px;
+    padding: 30px;
+  }
+
+  .topic-info h2 {
+    font-size: 26px;
+  }
+
+  .topic-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .open-button,
+  .learning-button,
+  .delete-button {
+    flex: 1;
+  }
 }

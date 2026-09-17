@@ -40,8 +40,7 @@ export class Register {
       this.isSuccess = false;
       return;
     }
-    const hasSpecialChar = /[-!@#$%^&*(),.?":_{}| /<>[]]/.test(this.password);
-    if (!hasSpecialChar) {
+      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>_\-[\]\\\/]/.test(this.password);    if (!hasSpecialChar) {
       this.message = 'Das Passwort muss mindestens ein Sonderzeichen enthalten (z. B. ! @ # $).';
       this.isSuccess = false;
       return;

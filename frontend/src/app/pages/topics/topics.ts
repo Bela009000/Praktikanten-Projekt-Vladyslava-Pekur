@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 interface Topic {
   id: number;
@@ -8,47 +9,72 @@ interface Topic {
 }
 
 @Component({
-  imports: [FormsModule, CommonModule],
   selector: 'app-topics',
-  styleUrl: './topics.css',
+  imports: [FormsModule, CommonModule, RouterLink],
   templateUrl: './topics.html',
+  styleUrl: './topics.css'
 })
 export class Topics {
+
   topics: Topic[] = [];
   newTopicName = '';
   private nextId = 1;
 
   ngOnInit() {
     const saved = localStorage.getItem('topics');
+
     if (saved) {
       this.topics = JSON.parse(saved);
+
       this.nextId = this.topics.length > 0
-        ? Math.max(...this.topics.map(t => t.id)) + 1
+        ? Math.max(...this.topics.map(topic => topic.id)) + 1
         : 1;
     }
   }
 
+  getWordCount(topicId: number): number {
+    const savedWords = localStorage.getItem(`words_${topicId}`);
+
+    if (!savedWords) {
+      return 0;
+    }
+
+    return JSON.parse(savedWords).length;
+  }
+
   addTopic() {
-    if (this.newTopicName.trim() === '') {
+    const name = this.newTopicName.trim();
+
+    if (name === '') {
       return;
     }
 
     this.topics.push({
       id: this.nextId,
-      name: this.newTopicName.trim(),
+      name: name
     });
 
     this.nextId++;
     this.newTopicName = '';
+
     this.saveTopics();
   }
 
   deleteTopic(id: number) {
-    this.topics = this.topics.filter(t => t.id !== id);
+    this.topics = this.topics.filter(
+      topic => topic.id !== id
+    );
+
+    localStorage.removeItem(`words_${id}`);
+    localStorage.removeItem(`cards_progress_${id}`);
+
     this.saveTopics();
   }
 
   private saveTopics() {
-    localStorage.setItem('topics', JSON.stringify(this.topics));
+    localStorage.setItem(
+      'topics',
+      JSON.stringify(this.topics)
+    );
   }
 }

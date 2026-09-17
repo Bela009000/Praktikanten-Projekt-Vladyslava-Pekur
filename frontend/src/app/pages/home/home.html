@@ -1,8 +1,96 @@
-<div class="page-wrapper">
-    <div class="home-container">
-        <h1>Willkommen, {{ username }}!</h1>
-        <p>Bereit zum Lernen?</p>
-        <a routerLink="/topics" class="main-button">Meine Themen</a>
-        <button type="button" class="logout-button" (click)="logout()">Ausloggen</button>
-    </div>
+<div class="page">
+
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <main class="content">
+
+        <div class="hero-section">
+            <div class="welcome-box">
+                <h1>Willkommen, {{ username }}!</h1>
+                <p>Schön, dass du wieder da bist.</p>
+            </div>
+            <img src="/illustrations/education.svg" alt="" class="hero-illustration" />
+        </div>
+
+        <div class="stats-row">
+
+            <div class="stat-box">
+                <div class="stat-number">{{ topics.length }}</div>
+                <div class="stat-label">Themen</div>
+            </div>
+
+            <div class="stat-box">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Karten</div>
+            </div>
+
+            <div class="stat-box">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Quiz absolviert</div>
+            </div>
+
+        </div>
+
+        <div class="quick-actions-header">
+            <h2 class="section-title">Schnellzugriff</h2>
+            <img src="/illustrations/celebration.svg" alt="" class="celebration-illustration" />
+        </div>
+
+        <div class="quick-actions">
+
+            <a routerLink="/topics" class="action-tile">
+                <span class="action-icon">
+                    <i data-lucide="playing-cards-fan"></i>
+                </span>
+
+                <div class="action-title">Meine Themen</div>
+                <div class="action-subtitle">Alle Themen anzeigen</div>
+            </a>
+
+            <a routerLink="/my-cards" class="action-tile">
+                <span class="action-icon">
+                    <i data-lucide="graduation-cap"></i>
+                </span>
+
+                <div class="action-title">Karteikarten lernen</div>
+                <div class="action-subtitle">Lernen starten</div>
+            </a>
+
+            <a routerLink="/quiz" class="action-tile">
+                <span class="action-icon">
+                    <i data-lucide="brain"></i>
+                </span>
+
+                <div class="action-title">Quiz starten</div>
+                <div class="action-subtitle">Wissen testen</div>
+            </a>
+
+        </div>
+
+        <div class="recent-section" *ngIf="recentTopics.length > 0">
+
+            <h2 class="section-title">Letzte Themen</h2>
+
+            <div class="recent-grid">
+
+                <div class="recent-tile" *ngFor="let topic of recentTopics">
+                    <div>{{ topic.name }}</div>
+                    <div class="recent-tile-count">0 Karten</div>
+                </div>
+
+            </div>
+
+            <a routerLink="/topics" class="see-all-link">
+                Alle anzeigen →
+            </a>
+
+        </div>
+
+    </main>
+
+    <footer class="footer">
+        <span>© 2026 Lernkarten</span>
+    </footer>
+
 </div>

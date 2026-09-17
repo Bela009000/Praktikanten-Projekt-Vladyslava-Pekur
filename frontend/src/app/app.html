@@ -1,1 +1,68 @@
-<router-outlet></router-outlet>
+<header class="topbar">
+
+    <div class="logo">
+        <i data-lucide="playing-cards"></i>
+        <a routerLink="/home">Lernkarten App</a>
+    </div>
+
+    <nav class="top-menu">
+
+        <a routerLink="/my-cards">Lernkarten</a>
+        <a routerLink="/topics">Themen</a>
+        <a routerLink="/quiz">Quiz</a>
+
+        <div class="account-wrapper">
+
+            <button type="button" class="account-button" (click)="toggleAccount()">
+
+                <i data-lucide="user"></i>
+                <span>{{ username }}</span>
+
+            </button>
+
+            <div class="account-menu" *ngIf="accountOpen">
+
+                <div class="account-header">
+
+                    <div class="account-avatar">
+                        {{ userInitial }}
+                    </div>
+
+                    <div>
+                        <strong>{{ username }}</strong>
+                        <span>Mein Account</span>
+                    </div>
+
+                </div>
+
+                <div class="account-divider"></div>
+
+                <a routerLink="/topics">
+                    <i data-lucide="library"></i>
+                    <span>Meine Bibliothek</span>
+                </a>
+
+
+                <a routerLink="/my-cards">
+                    <i data-lucide="playing-cards-fan"></i>
+                    <span>Vergangene Karten</span>
+                </a>
+
+            </div>
+
+        </div>
+
+        <button type="button" class="logout-button-top" (click)="logout()">
+
+            <i data-lucide="log-out"></i>
+            <span>Ausloggen</span>
+
+        </button>
+
+    </nav>
+
+</header>
+
+<div class="app-content">
+    <router-outlet></router-outlet>
+</div>

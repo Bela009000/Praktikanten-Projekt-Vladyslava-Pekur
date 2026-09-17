@@ -1,0 +1,200 @@
+<div class="quiz-page">
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <div class="quiz-container">
+
+        <a routerLink="/home" class="back-button">
+            ← Zurück zum Hauptmenü
+        </a>
+
+        <div class="quiz-title">
+            <h1>Quiz</h1>
+            <p>Teste dein Wissen mit deinen Lernkarten.</p>
+        </div>
+
+
+        <main *ngIf="!isStarted" class="selection-card">
+
+            <h2>Thema auswählen</h2>
+
+            <p class="selection-text">
+                Wähle ein Thema für dein Quiz.
+            </p>
+
+            <select [(ngModel)]="selectedTopicId" class="topic-select">
+
+                <option [ngValue]="null">
+                    Thema auswählen...
+                </option>
+
+                <option *ngFor="let topic of topics" [ngValue]="topic.id">
+                    {{ topic.name }}
+                </option>
+
+            </select>
+
+            <button type="button" class="start-button" (click)="startQuiz()" [disabled]="selectedTopicId === null">
+                Quiz starten →
+            </button>
+
+            <div class="no-topics" *ngIf="topics.length === 0">
+
+                <p>
+                    Es gibt noch keine Themen mit Lernkarten.
+                </p>
+
+                <a routerLink="/topics">
+                    Zu meinen Themen
+                </a>
+
+            </div>
+
+        </main>
+
+
+        <main *ngIf="isStarted && !isFinished && currentWord" class="quiz-card">
+
+            <div class="quiz-header">
+
+                <div>
+
+                    <span class="quiz-topic">
+                        {{ selectedTopicName }}
+                    </span>
+
+                    <h2>Frage</h2>
+
+                </div>
+
+                <span class="question-counter">
+                    {{ currentIndex + 1 }} / {{ words.length }}
+                </span>
+
+            </div>
+
+
+            <div class="progress-bar">
+
+                <div class="progress-fill" [style.width.%]="progress"></div>
+
+            </div>
+
+
+            <div class="question-area">
+
+                <div class="question">
+                    {{ currentWord.word }}
+                </div>
+
+            </div>
+
+
+            <div class="answer-area">
+
+                <label for="userAnswer">
+                    Deine Antwort
+                </label>
+
+                <input id="userAnswer" type="text" [(ngModel)]="userAnswer" placeholder="Deine Antwort eingeben..."
+                    [disabled]="showAnswer" (keyup.enter)="checkAnswer()" />
+
+
+                <button *ngIf="!showAnswer" type="button" class="show-answer-button" (click)="checkAnswer()"
+                    [disabled]="userAnswer.trim() === ''">
+                    Antwort überprüfen
+                </button>
+
+            </div>
+
+
+            <div *ngIf="showAnswer" class="correct-answer">
+
+                <span>
+                    Richtige Antwort
+                </span>
+
+                <strong>
+                    {{ currentWord.translation }}
+                </strong>
+
+            </div>
+
+
+            <div *ngIf="showAnswer" class="result-area">
+
+                <div class="answer-result" [class.correct]="answerIsCorrect" [class.wrong]="!answerIsCorrect">
+
+                    <strong *ngIf="answerIsCorrect">
+                        ✓ Richtig!
+                    </strong>
+
+                    <strong *ngIf="!answerIsCorrect">
+                        ✕ Falsch
+                    </strong>
+
+                    <span>
+                        Deine Antwort: {{ userAnswer }}
+                    </span>
+
+                </div>
+
+
+                <button type="button" class="next-button" (click)="nextQuestion()">
+                    Nächste Frage →
+                </button>
+
+            </div>
+
+        </main>
+
+
+        <main *ngIf="isFinished" class="result-card">
+
+
+
+            <h2>
+                Quiz abgeschlossen!
+            </h2>
+
+            <p class="result-topic">
+                {{ selectedTopicName }}
+            </p>
+
+
+            <div class="result-percent">
+                {{ resultPercent }}%
+            </div>
+
+
+            <p class="result-text">
+                {{ correctAnswers }} von {{ words.length }}
+                Fragen richtig beantwortet
+            </p>
+
+
+            <div class="result-progress">
+
+                <div class="result-progress-fill" [style.width.%]="resultPercent"></div>
+
+            </div>
+
+
+            <div class="result-actions">
+
+                <button type="button" class="restart-button" (click)="restartQuiz()">
+                    Nochmal starten
+                </button>
+
+
+                <button type="button" class="selection-button" (click)="backToSelection()">
+                    Anderes Thema
+                </button>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>

@@ -10,10 +10,13 @@ import { CommonModule } from '@angular/common';
   templateUrl: './login.html',
 })
 export class Login {
+
   username = '';
   password = '';
+
   message = '';
   isSuccess = false;
+
   showPassword = false;
 
   constructor(private router: Router) {}
@@ -23,17 +26,30 @@ export class Login {
   }
 
   onSubmit() {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
 
-    const user = users.find((u: any) => u.username === this.username);
+    const users = JSON.parse(
+      localStorage.getItem('users') || '[]'
+    );
+
+    const user = users.find(
+      (u: any) => u.username === this.username
+    );
 
     if (!user || user.password !== this.password) {
-      this.message = 'Benutzername oder Passwort ist falsch.';
+
+      this.message =
+        'Benutzername oder Passwort ist falsch.';
+
       this.isSuccess = false;
+
       return;
     }
 
-    localStorage.setItem('currentUser', this.username);
+    localStorage.setItem(
+      'currentUser',
+      this.username
+    );
+
     this.router.navigate(['/home']);
   }
 }

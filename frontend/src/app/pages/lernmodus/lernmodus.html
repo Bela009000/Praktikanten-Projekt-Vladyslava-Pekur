@@ -1,0 +1,103 @@
+<div class="learning-page">
+
+    <header class="learning-header">
+
+        <a routerLink="/topics" class="back-button">
+            ← Zurück
+        </a>
+
+        <div class="learning-title">
+            <h1>{{ topicName }}</h1>
+
+            <span *ngIf="words.length > 0 && !isFinished">
+                {{ currentIndex + 1 }} / {{ words.length }}
+            </span>
+        </div>
+
+        <button type="button" class="shuffle-button" (click)="shuffleCards()" *ngIf="words.length > 1 && !isFinished">
+            Karten mischen
+        </button>
+
+    </header>
+
+    <main class="learning-content" *ngIf="words.length > 0 && !isFinished">
+
+        <div class="learning-card">
+
+            <span class="card-label">
+                Frage
+            </span>
+
+            <div class="question">
+                {{ currentWord?.word }}
+            </div>
+
+            <div class="answer" *ngIf="showAnswer">
+
+                <span class="answer-label">
+                    Antwort
+                </span>
+
+                <div>
+                    {{ currentWord?.translation }}
+                </div>
+
+            </div>
+
+        </div>
+
+        <button *ngIf="!showAnswer" type="button" class="show-answer-button" (click)="showAnswerNow()">
+            Antwort anzeigen
+        </button>
+
+        <button *ngIf="showAnswer" type="button" class="next-button" (click)="nextCard()">
+            Nächste Karte →
+        </button>
+
+        <button type="button" class="previous-button" (click)="previousCard()" [disabled]="currentIndex === 0">
+            ← Vorherige Karte
+        </button>
+
+    </main>
+
+    <main class="empty-learning" *ngIf="words.length === 0">
+
+        <h2>Keine Wörter vorhanden</h2>
+
+        <p>
+            Dieses Thema enthält noch keine Wörter.
+        </p>
+
+        <a routerLink="/topics">
+            ← Zurück zu den Themen
+        </a>
+
+    </main>
+
+    <div class="finish-overlay" *ngIf="isFinished">
+
+        <div class="finish-modal">
+
+            <h2>Lernen abgeschlossen!</h2>
+
+            <p>
+                Du hast alle {{ words.length }} Karten durchgesehen.
+            </p>
+
+            <div class="finish-actions">
+
+                <button type="button" class="restart-button" (click)="restart()">
+                    Nochmal starten
+                </button>
+
+                <a routerLink="/topics" class="topics-button">
+                    Zurück zu den Themen
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
