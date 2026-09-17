@@ -60,43 +60,99 @@ input:focus {
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
 }
 
-button {
+.password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-wrapper input {
+  padding-right: 45px;
+}
+
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  padding: 7px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transform: translateY(-50%);
+
+  background-color: transparent;
+  color: #7c3aed;
+  border: none;
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+
+.toggle-password:hover {
+  background-color: #f3e8ff;
+}
+
+.toggle-password:active {
+  transform: translateY(-50%);
+}
+
+.toggle-password svg {
+  width: 19px;
+  height: 19px;
+  display: block;
+}
+
+button[type='submit'] {
   width: 100%;
   padding: 11px;
   margin-top: 8px;
+
   background-color: #7c3aed;
   color: #ffffff;
+
   border: none;
   border-radius: 6px;
+
   font-size: 15px;
   font-weight: 600;
+
   cursor: pointer;
+
   transition: background-color 0.2s;
 }
 
-button:hover {
+button[type='submit']:hover {
   background-color: #6d28d9;
 }
 
-button:active {
+button[type='submit']:active {
   transform: translateY(1px);
 }
 
 .back-button {
   display: block;
-  text-align: center;
-  text-decoration: none;
   width: 100%;
   padding: 11px;
   margin-top: 12px;
+
+  text-align: center;
+  text-decoration: none;
+
   background-color: transparent;
   color: #7c3aed;
+
   border: 1px solid #7c3aed;
   border-radius: 6px;
+
   font-size: 14px;
   font-weight: 600;
+
   cursor: pointer;
-  box-sizing: border-box;
+
   transition:
     background-color 0.2s,
     color 0.2s;
@@ -107,32 +163,8 @@ button:active {
   color: white;
 }
 
-.password-hint {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #7c3aed;
-}
-
-.password-wrapper {
-  gap: 8px;
-}
-
-.password-wrapper input {
-  flex: 1;
-}
-
-.toggle-password {
-  padding: 4px 10px;
-  background-color: transparent;
-  color: #7c3aed;
-  border: 1px solid #d8b4fe;
-  border-radius: 6px;
-  font-size: 11px;
-  cursor: pointer;
-  white-space: nowrap;
-  align-self: center;
-}
-
-.toggle-password:hover {
-  background-color: #f3e8ff;
+@media (max-width: 450px) {
+  .login-container {
+    padding: 35px 22px;
+  }
 }

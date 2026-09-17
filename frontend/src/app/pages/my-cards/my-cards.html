@@ -1,0 +1,79 @@
+<div class="my-cards-page">
+
+    <div class="my-cards-container">
+
+        <a routerLink="/home" class="back-button">
+            ← Zurück zum Hauptmenü
+        </a>
+
+        <div class="my-cards-title">
+            <h1>Meine Lernkarten</h1>
+        </div>
+
+        <div class="cards-list" *ngIf="topics.length > 0">
+
+            <div class="card-topic" *ngFor="let topic of topics">
+
+                <div class="topic-header">
+
+                    <div>
+                        <h2>{{ topic.name }}</h2>
+                        <span>{{ topic.totalCards }} Karten</span>
+                    </div>
+
+                    <div class="progress-percent">
+                        {{ topic.progress }}%
+                    </div>
+
+                </div>
+
+
+                <div class="progress-section">
+
+                    <div class="progress-bar">
+
+                        <div class="progress-fill" [style.width.%]="topic.progress"></div>
+
+                    </div>
+
+                    <div class="progress-text">
+                        {{ topic.learnedCards }} von {{ topic.totalCards }} Karten gelernt
+                    </div>
+
+                </div>
+
+
+                <div class="card-actions">
+
+                    <a [routerLink]="['/lernmodus', topic.id]" class="learning-button">
+                        Lernmodus
+                    </a>
+
+                    <a [routerLink]="['/cards', topic.id]" class="continue-button">
+                        {{ topic.progress === 100 ? 'Wiederholen →' : 'Weiterlernen →' }}
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="empty-state" *ngIf="topics.length === 0">
+
+            <h2>Noch keine Lernkarten</h2>
+
+            <p>
+                Erstelle zuerst Wörter in einem Thema.
+            </p>
+
+            <a routerLink="/topics" class="topics-button">
+                Zu meinen Themen
+            </a>
+
+        </div>
+
+    </div>
+
+</div>

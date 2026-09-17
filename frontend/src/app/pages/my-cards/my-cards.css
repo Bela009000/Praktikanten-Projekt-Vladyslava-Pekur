@@ -1,0 +1,235 @@
+* {
+  box-sizing: border-box;
+}
+
+.my-cards-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #faf7ff, #f5f3ff, #ffffff);
+  font-family: 'Open Sans', sans-serif;
+  color: #4c1d95;
+}
+
+.my-cards-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 25px 25px 50px;
+}
+
+.back-button {
+  display: inline-block;
+  margin-bottom: 40px;
+  color: #7c3aed;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.back-button:hover {
+  color: #5b21b6;
+}
+
+.my-cards-title {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.my-cards-title h1 {
+  margin: 0;
+  color: #4c1d95;
+  font-size: 36px;
+}
+
+.cards-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.card-topic {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  padding: 28px;
+  background: white;
+  border: 1px solid #ede9fe;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.08);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.topic-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.topic-header h2 {
+  margin: 0 0 8px;
+  color: #4c1d95;
+  font-size: 28px;
+  word-break: break-word;
+}
+
+.topic-header span {
+  color: #9ca3af;
+  font-size: 15px;
+}
+
+.progress-percent {
+  color: #7c3aed;
+  font-size: 26px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.progress-section {
+  margin-top: 18px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  background: #ede9fe;
+  border-radius: 20px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #7c3aed;
+  border-radius: 20px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  margin-top: 12px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.learning-button,
+.continue-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.learning-button {
+  background: #f3e8ff;
+  color: #6d28d9;
+  border: 1px solid #ddd6fe;
+}
+
+.learning-button:hover {
+  background: #e9d5ff;
+}
+
+.continue-button {
+  background: #7c3aed;
+  color: white;
+  border: 1px solid #7c3aed;
+}
+
+.continue-button:hover {
+  background: #6d28d9;
+}
+
+.empty-state {
+  padding: 70px 30px;
+  background: white;
+  border: 1px solid #ede9fe;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.empty-state h2 {
+  margin: 0 0 10px;
+  color: #5b21b6;
+}
+
+.empty-state p {
+  margin: 0 0 25px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.topics-button {
+  display: inline-block;
+  padding: 14px 22px;
+  background: #7c3aed;
+  color: white;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.topics-button:hover {
+  background: #6d28d9;
+}
+
+@media (max-width: 950px) {
+  .my-cards-container {
+    padding: 25px 16px 40px;
+  }
+
+  .my-cards-title h1 {
+    font-size: 30px;
+  }
+
+  .cards-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card-topic {
+    padding: 25px;
+  }
+
+  .topic-header h2 {
+    font-size: 24px;
+  }
+
+  .progress-percent {
+    font-size: 22px;
+  }
+}
+
+@media (max-width: 650px) {
+  .cards-list {
+    grid-template-columns: 1fr;
+  }
+
+  .card-topic {
+    aspect-ratio: auto;
+    min-height: 330px;
+  }
+
+  .card-actions {
+    flex-direction: column;
+  }
+
+  .learning-button,
+  .continue-button {
+    width: 100%;
+  }
+}
