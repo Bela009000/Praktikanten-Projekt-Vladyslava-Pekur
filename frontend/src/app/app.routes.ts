@@ -29,5 +29,6 @@ export const routes: Routes = [
   { path: 'lernmodus/:id', component: Lernmodus, canActivate: [authGuard] },
 
   { path: 'my-cards', component: MyCards, canActivate: [authGuard] },
+  
   { path: 'quiz', component: Quiz, canActivate: [authGuard] }
 ];

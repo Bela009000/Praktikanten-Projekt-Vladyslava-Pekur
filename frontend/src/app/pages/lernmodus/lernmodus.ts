@@ -28,10 +28,7 @@ export class Lernmodus {
   constructor(private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.topicId = Number(
-      this.route.snapshot.paramMap.get('id')
-    );
-
+    this.topicId = Number(this.route.snapshot.paramMap.get('id'));
     this.loadTopic();
     this.loadWords();
   }
@@ -39,15 +36,11 @@ export class Lernmodus {
   private loadTopic() {
     const savedTopics = localStorage.getItem('topics');
 
-    if (!savedTopics) {
-      return;
-    }
+    if (!savedTopics) return;
 
     const topics = JSON.parse(savedTopics);
 
-    const topic = topics.find(
-      (topic: any) => topic.id === this.topicId
-    );
+    const topic = topics.find((topic: any) => topic.id === this.topicId);
 
     if (topic) {
       this.topicName = topic.name;
@@ -55,13 +48,9 @@ export class Lernmodus {
   }
 
   private loadWords() {
-    const savedWords = localStorage.getItem(
-      `words_${this.topicId}`
-    );
+    const savedWords = localStorage.getItem(`words_${this.topicId}`);
 
-    if (!savedWords) {
-      return;
-    }
+    if (!savedWords) return;
 
     this.words = JSON.parse(savedWords);
   }
@@ -82,6 +71,34 @@ export class Lernmodus {
     } else {
       this.isFinished = true;
     }
+  }
+
+  previousCard() {
+    if (this.currentIndex <= 0) {
+      return;
+    }
+
+    this.currentIndex--;
+    this.showAnswer = false;
+  }
+
+  shuffleCards() {
+    if (this.words.length <= 1) {
+      return;
+    }
+
+    for (let i = this.words.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+
+      [this.words[i], this.words[j]] = [
+        this.words[j],
+        this.words[i]
+      ];
+    }
+
+    this.currentIndex = 0;
+    this.showAnswer = false;
+    this.isFinished = false;
   }
 
   restart() {

@@ -14,10 +14,11 @@
             </span>
         </div>
 
-        <div></div>
+        <button type="button" class="shuffle-button" (click)="shuffleCards()" *ngIf="words.length > 1 && !isFinished">
+            Karten mischen
+        </button>
 
     </header>
-
 
     <main class="learning-content" *ngIf="words.length > 0 && !isFinished">
 
@@ -45,18 +46,19 @@
 
         </div>
 
-
         <button *ngIf="!showAnswer" type="button" class="show-answer-button" (click)="showAnswerNow()">
             Antwort anzeigen
         </button>
-
 
         <button *ngIf="showAnswer" type="button" class="next-button" (click)="nextCard()">
             Nächste Karte →
         </button>
 
-    </main>
+        <button type="button" class="previous-button" (click)="previousCard()" [disabled]="currentIndex === 0">
+            ← Vorherige Karte
+        </button>
 
+    </main>
 
     <main class="empty-learning" *ngIf="words.length === 0">
 
@@ -71,7 +73,6 @@
         </a>
 
     </main>
-
 
     <div class="finish-overlay" *ngIf="isFinished">
 

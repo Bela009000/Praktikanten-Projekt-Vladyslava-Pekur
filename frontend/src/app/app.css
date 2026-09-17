@@ -22,12 +22,24 @@ body {
   border-radius: 0 0 10px 10px;
   box-shadow: 0 3px 12px rgba(76, 29, 149, 0.15);
 }
+
 .logo {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 18px;
   font-weight: 700;
+}
+
+.logo a {
+  color: white;
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.logo a:hover {
+  opacity: 0.75;
 }
 
 .logo svg {
@@ -38,7 +50,7 @@ body {
 .top-menu {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 32px;
 }
 
 .top-menu a {
@@ -168,6 +180,7 @@ body {
   font-size: 13px;
   font-weight: 600;
 }
+
 .app-content {
   padding-top: 55px;
 }
@@ -192,6 +205,10 @@ body {
   }
 
   .top-menu > a {
+    display: none;
+  }
+
+  .logo a {
     display: none;
   }
 

@@ -47,6 +47,24 @@
   opacity: 0.8;
 }
 
+.shuffle-button {
+  justify-self: end;
+  padding: 9px 14px;
+  background: rgba(255, 255, 255, 0.16);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.shuffle-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
 .learning-content {
   width: 100%;
   max-width: 850px;
@@ -105,7 +123,8 @@
 }
 
 .show-answer-button,
-.next-button {
+.next-button,
+.previous-button {
   min-width: 250px;
   margin-top: 30px;
   padding: 15px 25px;
@@ -135,6 +154,22 @@
 
 .next-button:hover {
   background: #6d28d9;
+}
+
+.previous-button {
+  margin-top: 12px;
+  background: white;
+  color: #7c3aed;
+  border: 1px solid #c4b5fd;
+}
+
+.previous-button:hover:not(:disabled) {
+  background: #f5f3ff;
+}
+
+.previous-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .empty-learning {
@@ -234,7 +269,21 @@
 
 @media (max-width: 700px) {
   .learning-header {
+    grid-template-columns: 1fr;
+    gap: 12px;
     padding: 16px;
+  }
+
+  .learning-title {
+    order: -1;
+  }
+
+  .shuffle-button {
+    justify-self: center;
+  }
+
+  .back-button {
+    justify-self: center;
   }
 
   .learning-content {
@@ -255,7 +304,8 @@
   }
 
   .show-answer-button,
-  .next-button {
+  .next-button,
+  .previous-button {
     width: 100%;
   }
 }
