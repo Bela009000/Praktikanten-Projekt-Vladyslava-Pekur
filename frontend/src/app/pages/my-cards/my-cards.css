@@ -4,12 +4,41 @@
 
 .my-cards-page {
   min-height: 100vh;
+  position: relative;
+  overflow: hidden;
   background: linear-gradient(135deg, #faf7ff, #f5f3ff, #ffffff);
   font-family: 'Open Sans', sans-serif;
   color: #4c1d95;
 }
 
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.3;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.blob-1 {
+  width: 420px;
+  height: 420px;
+  top: -120px;
+  right: -100px;
+  background: radial-gradient(circle, #c4b5fd, transparent 70%);
+}
+
+.blob-2 {
+  width: 380px;
+  height: 380px;
+  bottom: -140px;
+  left: -120px;
+  background: radial-gradient(circle, #a855f7, transparent 70%);
+}
+
 .my-cards-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
@@ -48,16 +77,23 @@
 
 .card-topic {
   width: 100%;
-  aspect-ratio: 1 / 1;
   padding: 28px;
   background: white;
   border: 1px solid #ede9fe;
   border-radius: 20px;
   box-shadow: 0 8px 24px rgba(124, 58, 237, 0.08);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 20px;
+}
+
+.card-topic:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px rgba(124, 58, 237, 0.16);
 }
 
 .topic-header {
@@ -67,27 +103,46 @@
   gap: 20px;
 }
 
+.topic-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.topic-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
 .topic-header h2 {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   color: #4c1d95;
-  font-size: 28px;
+  font-size: 22px;
   word-break: break-word;
 }
 
 .topic-header span {
   color: #9ca3af;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .progress-percent {
   color: #7c3aed;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
   flex-shrink: 0;
 }
 
 .progress-section {
-  margin-top: 18px;
+  margin-top: 0;
 }
 
 .progress-bar {
@@ -114,7 +169,7 @@
 .card-actions {
   display: flex;
   gap: 10px;
-  margin-top: 18px;
+  margin-top: 0;
 }
 
 .learning-button,
@@ -155,6 +210,8 @@
 }
 
 .empty-state {
+  position: relative;
+  z-index: 1;
   padding: 70px 30px;
   background: white;
   border: 1px solid #ede9fe;
@@ -206,22 +263,17 @@
   }
 
   .topic-header h2 {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .progress-percent {
-    font-size: 22px;
+    font-size: 20px;
   }
 }
 
 @media (max-width: 650px) {
   .cards-list {
     grid-template-columns: 1fr;
-  }
-
-  .card-topic {
-    aspect-ratio: auto;
-    min-height: 330px;
   }
 
   .card-actions {

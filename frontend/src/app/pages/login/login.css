@@ -4,30 +4,73 @@
 
 .page-wrapper {
   min-height: 100vh;
+  position: relative;
+  overflow: hidden;
   display: grid;
   place-items: center;
   padding: 20px;
+  background: linear-gradient(135deg, #faf7ff, #f5f3ff, #ffffff);
+}
+
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.35;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.blob-1 {
+  width: 380px;
+  height: 380px;
+  top: -100px;
+  right: -80px;
+  background: radial-gradient(circle, #c4b5fd, transparent 70%);
+}
+
+.blob-2 {
+  width: 340px;
+  height: 340px;
+  bottom: -120px;
+  left: -100px;
+  background: radial-gradient(circle, #a855f7, transparent 70%);
 }
 
 .login-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 380px;
-  padding: 42px 28px;
-  border-radius: 12px;
+  max-width: 420px;
+  padding: 48px 36px;
+  border-radius: 20px;
   background-color: #ffffff;
-  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.15);
+  box-shadow: 0 8px 30px rgba(124, 58, 237, 0.15);
   font-family: sans-serif;
+  opacity: 0;
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .login-container h2 {
-  margin: 0 0 24px;
+  margin: 0 0 28px;
   text-align: center;
   color: #5b21b6;
-  font-size: 22px;
+  font-size: 26px;
 }
 
 .form-group {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
 }
@@ -41,9 +84,9 @@ label {
 
 input {
   width: 100%;
-  padding: 10px 12px;
+  padding: 11px 12px;
   border: 1px solid #d8b4fe;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
   outline: none;
   transition:
@@ -108,14 +151,14 @@ input:focus {
 
 button[type='submit'] {
   width: 100%;
-  padding: 11px;
-  margin-top: 8px;
+  padding: 12px;
+  margin-top: 10px;
 
   background-color: #7c3aed;
   color: #ffffff;
 
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
 
   font-size: 15px;
   font-weight: 600;
@@ -136,8 +179,8 @@ button[type='submit']:active {
 .back-button {
   display: block;
   width: 100%;
-  padding: 11px;
-  margin-top: 12px;
+  padding: 12px;
+  margin-top: 14px;
 
   text-align: center;
   text-decoration: none;
@@ -146,7 +189,7 @@ button[type='submit']:active {
   color: #7c3aed;
 
   border: 1px solid #7c3aed;
-  border-radius: 6px;
+  border-radius: 8px;
 
   font-size: 14px;
   font-weight: 600;

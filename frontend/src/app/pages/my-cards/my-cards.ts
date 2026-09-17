@@ -13,6 +13,7 @@ interface LernkartenTopic {
   totalCards: number;
   learnedCards: number;
   progress: number;
+  color: string;
 }
 
 @Component({
@@ -24,6 +25,8 @@ interface LernkartenTopic {
 export class MyCards {
 
   topics: LernkartenTopic[] = [];
+
+  private topicColors = ['#7c3aed', '#a855f7', '#c026d3', '#8b5cf6', '#6d28d9'];
 
   ngOnInit() {
     this.loadTopics();
@@ -39,7 +42,7 @@ export class MyCards {
     const allTopics: Topic[] = JSON.parse(savedTopics);
 
     this.topics = allTopics
-      .map(topic => {
+      .map((topic, index) => {
 
         const savedWords = localStorage.getItem(
           `words_${topic.id}`
@@ -76,7 +79,8 @@ export class MyCards {
           name: topic.name,
           totalCards: words.length,
           learnedCards: learnedCards,
-          progress: progress
+          progress: progress,
+          color: this.topicColors[index % this.topicColors.length]
         };
       })
       .filter(

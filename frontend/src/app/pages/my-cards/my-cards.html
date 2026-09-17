@@ -1,5 +1,8 @@
 <div class="my-cards-page">
 
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
     <div class="my-cards-container">
 
         <a routerLink="/home" class="back-button">
@@ -16,9 +19,14 @@
 
                 <div class="topic-header">
 
-                    <div>
-                        <h2>{{ topic.name }}</h2>
-                        <span>{{ topic.totalCards }} Karten</span>
+                    <div class="topic-header-left">
+                        <div class="topic-avatar" [style.background]="topic.color">
+                            {{ topic.name.charAt(0).toUpperCase() }}
+                        </div>
+                        <div>
+                            <h2>{{ topic.name }}</h2>
+                            <span>{{ topic.totalCards }} Karten</span>
+                        </div>
                     </div>
 
                     <div class="progress-percent">
