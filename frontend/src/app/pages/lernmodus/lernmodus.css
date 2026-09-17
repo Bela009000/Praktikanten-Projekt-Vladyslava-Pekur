@@ -1,0 +1,261 @@
+* {
+  box-sizing: border-box;
+}
+
+.learning-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #faf7ff, #f5f3ff, #ffffff);
+  font-family: 'Open Sans', sans-serif;
+  color: #4c1d95;
+}
+
+.learning-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 18px 32px;
+  background: rgba(161, 106, 255, 0.92);
+  color: white;
+  box-shadow: 0 3px 12px rgba(76, 29, 149, 0.15);
+}
+
+.back-button {
+  width: fit-content;
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.back-button:hover {
+  opacity: 0.75;
+}
+
+.learning-title {
+  text-align: center;
+}
+
+.learning-title h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.learning-title span {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.learning-content {
+  width: 100%;
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 55px 20px;
+  text-align: center;
+}
+
+.learning-card {
+  width: 100%;
+  max-width: 650px;
+  min-height: 360px;
+  margin: 0 auto;
+  padding: 50px 40px;
+  background: white;
+  border: 1px solid #ede9fe;
+  border-radius: 22px;
+  box-shadow: 0 12px 35px rgba(124, 58, 237, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-label {
+  margin-bottom: 30px;
+  color: #8b5cf6;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.question {
+  color: #4c1d95;
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.answer {
+  width: 100%;
+  margin-top: 45px;
+  padding-top: 30px;
+  border-top: 1px solid #ede9fe;
+  color: #6d28d9;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.answer-label {
+  display: block;
+  margin-bottom: 10px;
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.show-answer-button,
+.next-button {
+  min-width: 250px;
+  margin-top: 30px;
+  padding: 15px 25px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.show-answer-button {
+  background: #7c3aed;
+  color: white;
+  border: none;
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.2);
+}
+
+.show-answer-button:hover {
+  background: #6d28d9;
+}
+
+.next-button {
+  background: #7c3aed;
+  color: white;
+  border: none;
+}
+
+.next-button:hover {
+  background: #6d28d9;
+}
+
+.empty-learning {
+  padding: 100px 20px;
+  text-align: center;
+}
+
+.empty-learning h2 {
+  margin-bottom: 8px;
+  color: #5b21b6;
+}
+
+.empty-learning p {
+  margin-bottom: 20px;
+  color: #9ca3af;
+}
+
+.empty-learning a {
+  color: #7c3aed;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.finish-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(76, 29, 149, 0.28);
+  backdrop-filter: blur(5px);
+  z-index: 2000;
+}
+
+.finish-modal {
+  width: 100%;
+  max-width: 430px;
+  padding: 35px;
+  background: white;
+  border: 1px solid #ede9fe;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(76, 29, 149, 0.2);
+  text-align: center;
+}
+
+.finish-modal h2 {
+  margin: 0 0 12px;
+  color: #5b21b6;
+  font-size: 25px;
+}
+
+.finish-modal p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.finish-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.restart-button,
+.topics-button {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.restart-button {
+  background: #7c3aed;
+  color: white;
+  border: none;
+}
+
+.restart-button:hover {
+  background: #6d28d9;
+}
+
+.topics-button {
+  background: white;
+  color: #7c3aed;
+  border: 1px solid #c4b5fd;
+}
+
+.topics-button:hover {
+  background: #f5f3ff;
+}
+
+@media (max-width: 700px) {
+  .learning-header {
+    padding: 16px;
+  }
+
+  .learning-content {
+    padding: 30px 16px;
+  }
+
+  .learning-card {
+    min-height: 300px;
+    padding: 35px 25px;
+  }
+
+  .question {
+    font-size: 28px;
+  }
+
+  .answer {
+    font-size: 23px;
+  }
+
+  .show-answer-button,
+  .next-button {
+    width: 100%;
+  }
+}
