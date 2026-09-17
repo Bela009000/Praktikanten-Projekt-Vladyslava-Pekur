@@ -47,8 +47,16 @@
   flex: 1;
 }
 
-.welcome-box {
+.hero-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
   margin-bottom: 40px;
+}
+
+.welcome-box {
+  margin-bottom: 0;
 }
 
 .welcome-box h1 {
@@ -63,6 +71,12 @@
   font-size: 16px;
 }
 
+.hero-illustration {
+  width: 220px;
+  height: auto;
+  flex-shrink: 0;
+}
+
 .stats-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -75,6 +89,7 @@
   text-align: center;
   background: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(124, 58, 237, 0.08);
   border-radius: 14px;
   box-shadow: 0 4px 15px rgba(76, 29, 149, 0.06);
@@ -106,6 +121,21 @@
   margin: 0 0 16px;
   color: #4c1d95;
   font-size: 19px;
+}
+
+.quick-actions-header {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.celebration-illustration {
+  position: absolute;
+  top: -40px;
+  right: 680px;
+  width: 90px;
+  height: auto;
+  opacity: 0.9;
+  pointer-events: none;
 }
 
 .quick-actions {
@@ -169,8 +199,6 @@
   transform: rotate(-6deg) scale(1.1);
 }
 
-/* Letzte Themen */
-
 .recent-section {
   margin-top: 10px;
 }
@@ -180,28 +208,23 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
 }
+
 .recent-tile {
   min-height: 100px;
   padding: 20px;
-
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 8px;
-
   background: rgba(255, 255, 255, 0.45);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-
   border: 1px solid rgba(124, 58, 237, 0.12);
   border-radius: 14px;
-
   box-shadow: 0 6px 20px rgba(76, 29, 149, 0.06);
-
   color: #4c1d95;
   font-size: 16px;
   font-weight: 600;
-
   transition: 0.25s ease;
 }
 
@@ -220,7 +243,6 @@
 .see-all-link {
   display: inline-block;
   margin-top: 16px;
-
   color: #7c3aed;
   font-size: 14px;
   font-weight: 600;
@@ -235,16 +257,11 @@
 .footer {
   position: relative;
   z-index: 1;
-
   padding: 20px 24px;
-
   text-align: center;
-
   color: #9ca3af;
   font-size: 13px;
 }
-
-/* Анимация */
 
 @keyframes fadeInUp {
   from {
@@ -258,11 +275,23 @@
   }
 }
 
-/* Планшет */
-
 @media (max-width: 800px) {
   .content {
     padding: 40px 20px 30px;
+  }
+
+  .hero-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .hero-illustration {
+    width: 170px;
+  }
+
+  .celebration-illustration {
+    display: none;
   }
 
   .quick-actions {
@@ -277,8 +306,6 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
-
-/* Телефон */
 
 @media (max-width: 600px) {
   .content {
