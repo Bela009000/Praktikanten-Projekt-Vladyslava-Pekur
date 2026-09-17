@@ -1,5 +1,8 @@
 <div class="topics-page">
 
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
     <div class="topics-container">
 
         <a routerLink="/home" class="back-button">
@@ -28,13 +31,19 @@
 
                 <div class="topic-info">
 
-                    <h2>
-                        {{ topic.name }}
-                    </h2>
+                    <div class="topic-avatar">
+                        {{ topic.name.charAt(0).toUpperCase() }}
+                    </div>
 
-                    <span>
-                        {{ getWordCount(topic.id) }} Wörter
-                    </span>
+                    <div>
+                        <h2>
+                            {{ topic.name }}
+                        </h2>
+
+                        <span>
+                            {{ getWordCount(topic.id) }} Wörter
+                        </span>
+                    </div>
 
                 </div>
 
@@ -42,7 +51,7 @@
                 <div class="topic-actions">
 
                     <a [routerLink]="['/topic', topic.id]" class="open-button">
-                        Öffnen
+                        Bearbeiten
                     </a>
 
                     <a [routerLink]="['/lernmodus', topic.id]" class="learning-button">

@@ -10,7 +10,7 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   padding: 18px 32px;
-  background: rgba(161, 106, 255, 0.92);
+  background: rgba(191, 154, 255, 0.92);
   color: white;
   box-shadow: 0 3px 12px rgba(76, 29, 149, 0.15);
 }

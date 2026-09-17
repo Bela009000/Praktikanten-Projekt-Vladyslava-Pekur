@@ -88,13 +88,33 @@ export class Cards {
       learned: learnedIds.includes(word.id)
     }));
 
-    this.cards = [...this.allCards];
+    const savedOrder = localStorage.getItem(
+      `cards_order_${this.topicId}`
+    );
+
+    if (savedOrder) {
+      const order: number[] = JSON.parse(savedOrder);
+
+      const orderedCards = order
+        .map(id => this.allCards.find(card => card.id === id))
+        .filter((card): card is Flashcard => card !== undefined);
+
+      const missingCards = this.allCards.filter(
+        card => !order.includes(card.id)
+      );
+
+      this.cards = [
+        ...orderedCards,
+        ...missingCards
+      ];
+    } else {
+      this.cards = [...this.allCards];
+    }
   }
 
   get currentCard(): Flashcard {
-  return this.cards[this.currentIndex];
-}
-  
+    return this.cards[this.currentIndex];
+  }
 
   get learnedCount(): number {
     return this.allCards.filter(
@@ -150,6 +170,36 @@ export class Cards {
     }
   }
 
+  previousCard() {
+    if (this.currentIndex <= 0 || this.isFinished) {
+      return;
+    }
+
+    this.currentIndex--;
+    this.isFlipped = false;
+  }
+
+  shuffleCards() {
+    if (this.cards.length <= 1) {
+      return;
+    }
+
+    for (let i = this.cards.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+
+      [this.cards[i], this.cards[j]] = [
+        this.cards[j],
+        this.cards[i]
+      ];
+    }
+
+    this.currentIndex = 0;
+    this.isFlipped = false;
+    this.isFinished = false;
+
+    this.saveOrder();
+  }
+
   restart() {
     this.allCards.forEach(card => {
       card.learned = false;
@@ -157,7 +207,7 @@ export class Cards {
 
     this.saveProgress();
 
-    this.cards = [...this.allCards];
+    this.cards = [...this.cards];
     this.currentIndex = 0;
     this.isFlipped = false;
     this.isFinished = false;
@@ -186,6 +236,15 @@ export class Cards {
     localStorage.setItem(
       `cards_progress_${this.topicId}`,
       JSON.stringify(learnedIds)
+    );
+  }
+
+  private saveOrder() {
+    const order = this.cards.map(card => card.id);
+
+    localStorage.setItem(
+      `cards_order_${this.topicId}`,
+      JSON.stringify(order)
     );
   }
 }

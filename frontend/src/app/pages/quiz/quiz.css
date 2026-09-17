@@ -4,12 +4,41 @@
 
 .quiz-page {
   min-height: 100vh;
+  position: relative;
+  overflow: hidden;
   background: linear-gradient(135deg, #faf7ff, #f5f3ff, #ffffff);
   font-family: 'Open Sans', sans-serif;
   color: #4c1d95;
 }
 
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.3;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.blob-1 {
+  width: 420px;
+  height: 420px;
+  top: -120px;
+  right: -100px;
+  background: radial-gradient(circle, #c4b5fd, transparent 70%);
+}
+
+.blob-2 {
+  width: 380px;
+  height: 380px;
+  bottom: -140px;
+  left: -120px;
+  background: radial-gradient(circle, #a855f7, transparent 70%);
+}
+
 .quiz-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
@@ -53,6 +82,19 @@
   border: 1px solid #ede9fe;
   border-radius: 22px;
   box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);
+  opacity: 0;
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .selection-card {
@@ -74,18 +116,27 @@
 
 .topic-select {
   width: 100%;
-  padding: 15px;
+  padding: 15px 45px 15px 15px;
   border: 1px solid #d8b4fe;
   border-radius: 10px;
   outline: none;
-  background: white;
+  background-color: white;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237c3aed' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 18px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   color: #4c1d95;
   font-family: inherit;
   font-size: 15px;
+  cursor: pointer;
 }
 
 .topic-select:focus {
   border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
 }
 
 .start-button {
@@ -100,6 +151,7 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .start-button:hover:not(:disabled) {
@@ -231,6 +283,7 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .show-answer-button:hover:not(:disabled) {
@@ -309,6 +362,7 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .next-button:hover {
@@ -388,6 +442,7 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .restart-button {
