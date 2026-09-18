@@ -1,18 +1,8 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-
-interface TopicData {
-  id: number;
-  name: string;
-}
-
-interface Word {
-  id: number;
-  word: string;
-  translation: string;
-}
+import { DataService, Topic as FirebaseTopic, Card } from '../../services/data.service';
 
 @Component({
   selector: 'app-topic',
@@ -22,40 +12,61 @@ interface Word {
 })
 export class Topic {
 
-  topic: TopicData | null = null;
-  words: Word[] = [];
+  topic: FirebaseTopic | null = null;
+  words: Card[] = [];
 
   newWord = '';
   newTranslation = '';
   wordList = '';
 
-  constructor(private route: ActivatedRoute) {}
+  private topicId = '';
 
-  ngOnInit() {
-    const topicId = Number(
-      this.route.snapshot.paramMap.get('id')
-    );
+  constructor(
+    private route: ActivatedRoute,
+    private dataService: DataService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
 
-    const savedTopics = localStorage.getItem('topics');
+  async ngOnInit() {
+    this.topicId =
+      this.route.snapshot.paramMap.get('id') || '';
 
-    if (savedTopics) {
-      const topics: TopicData[] = JSON.parse(savedTopics);
-
-      this.topic = topics.find(
-        topic => topic.id === topicId
-      ) || null;
+    if (!this.topicId) {
+      return;
     }
 
-    const savedWords = localStorage.getItem(
-      `words_${topicId}`
-    );
+    try {
+      const topics = await this.dataService.getTopics();
 
-    if (savedWords) {
-      this.words = JSON.parse(savedWords);
+      this.topic = topics.find(
+        topic => topic.id === this.topicId
+      ) || null;
+
+      if (this.topic) {
+        await this.loadWords();
+      }
+
+      this.changeDetectorRef.detectChanges();
+
+    } catch (error) {
+      console.error(error);
     }
   }
 
-  addWord() {
+  private async loadWords() {
+    try {
+      this.words = await this.dataService.getCards(
+        this.topicId
+      );
+
+      this.changeDetectorRef.detectChanges();
+
+    } catch (error) {
+      console.error('LOAD WORDS ERROR:', error);
+    }
+  }
+
+  async addWord() {
     if (!this.topic) {
       return;
     }
@@ -67,19 +78,26 @@ export class Topic {
       return;
     }
 
-    this.words.push({
-      id: Date.now(),
-      word: word,
-      translation: translation
-    });
+    try {
+      await this.dataService.addCard(
+        this.topic.id,
+        word,
+        translation
+      );
 
-    this.saveWords();
+      await this.loadWords();
 
-    this.newWord = '';
-    this.newTranslation = '';
+      this.newWord = '';
+      this.newTranslation = '';
+
+      this.changeDetectorRef.detectChanges();
+
+    } catch (error) {
+      console.error(error);
+    }
   }
 
-  addWordList() {
+  async addWordList() {
     if (!this.topic || this.wordList.trim() === '') {
       return;
     }
@@ -89,51 +107,54 @@ export class Topic {
       .map(line => line.trim())
       .filter(line => line !== '');
 
-    for (const line of lines) {
-      const parts = line.split(/\s*[-–—]\s*/);
+    try {
+      for (const line of lines) {
+        const parts = line.split(/\s*[-–—]\s*/);
 
-      if (parts.length < 2) {
-        continue;
+        if (parts.length < 2) {
+          continue;
+        }
+
+        const word = parts[0].trim();
+        const translation = parts.slice(1).join(' - ').trim();
+
+        if (word === '' || translation === '') {
+          continue;
+        }
+
+        await this.dataService.addCard(
+          this.topic.id,
+          word,
+          translation
+        );
       }
 
-      const word = parts[0].trim();
-      const translation = parts.slice(1).join(' - ').trim();
+      await this.loadWords();
 
-      if (word === '' || translation === '') {
-        continue;
-      }
+      this.wordList = '';
 
-      this.words.push({
-        id: Date.now() + Math.random(),
-        word: word,
-        translation: translation
-      });
+      this.changeDetectorRef.detectChanges();
+
+    } catch (error) {
+      console.error(error);
     }
-
-    this.saveWords();
-    this.wordList = '';
   }
 
-  deleteWord(id: number) {
+  async deleteWord(id: string) {
     if (!this.topic) {
       return;
     }
 
-    this.words = this.words.filter(
-      word => word.id !== id
-    );
+    try {
+      await this.dataService.deleteCard(
+        this.topic.id,
+        id
+      );
 
-    this.saveWords();
-  }
+      await this.loadWords();
 
-  private saveWords() {
-    if (!this.topic) {
-      return;
+    } catch (error) {
+      console.error(error);
     }
-
-    localStorage.setItem(
-      `words_${this.topic.id}`,
-      JSON.stringify(this.words)
-    );
   }
 }

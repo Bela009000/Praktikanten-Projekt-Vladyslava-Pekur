@@ -24,8 +24,11 @@
 
         </form>
 
+        <div class="loading-state" *ngIf="isLoading">
+            Themen werden geladen...
+        </div>
 
-        <div class="topic-list" *ngIf="topics.length > 0">
+        <div class="topic-list" *ngIf="!isLoading && topics.length > 0">
 
             <div class="topic-card" *ngFor="let topic of topics">
 
@@ -47,7 +50,6 @@
 
                 </div>
 
-
                 <div class="topic-actions">
 
                     <a [routerLink]="['/topic', topic.id]" class="open-button">
@@ -68,8 +70,7 @@
 
         </div>
 
-
-        <div class="empty-state" *ngIf="topics.length === 0">
+        <div class="empty-state" *ngIf="!isLoading && topics.length === 0">
 
             <h2>Noch keine Themen</h2>
 

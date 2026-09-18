@@ -1,12 +1,8 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-
-interface Topic {
-  id: number;
-  name: string;
-}
+import { DataService, Topic } from '../../services/data.service';
 
 @Component({
   selector: 'app-topics',
@@ -18,63 +14,82 @@ export class Topics {
 
   topics: Topic[] = [];
   newTopicName = '';
-  private nextId = 1;
+  wordCounts: { [topicId: string]: number } = {};
+  isLoading = true;
 
-  ngOnInit() {
-    const saved = localStorage.getItem('topics');
+  constructor(
+    private dataService: DataService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
 
-    if (saved) {
-      this.topics = JSON.parse(saved);
+  async ngOnInit() {
+    await this.loadTopics();
+  }
 
-      this.nextId = this.topics.length > 0
-        ? Math.max(...this.topics.map(topic => topic.id)) + 1
-        : 1;
+  async loadTopics() {
+    this.isLoading = true;
+
+    try {
+      const topics = await this.dataService.getTopics();
+
+      this.topics = topics;
+      this.wordCounts = {};
+      this.isLoading = false;
+
+      this.changeDetectorRef.detectChanges();
+
+      await Promise.all(
+        this.topics.map(async topic => {
+          try {
+            const cards = await this.dataService.getCards(topic.id);
+            this.wordCounts[topic.id] = cards.length;
+          } catch (error) {
+            console.error(error);
+            this.wordCounts[topic.id] = 0;
+          }
+        })
+      );
+
+      this.changeDetectorRef.detectChanges();
+
+    } catch (error) {
+      console.error('TOPICS ERROR:', error);
+      this.isLoading = false;
+      this.changeDetectorRef.detectChanges();
     }
   }
 
-  getWordCount(topicId: number): number {
-    const savedWords = localStorage.getItem(`words_${topicId}`);
-
-    if (!savedWords) {
-      return 0;
-    }
-
-    return JSON.parse(savedWords).length;
+  getWordCount(topicId: string): number {
+    return this.wordCounts[topicId] || 0;
   }
 
-  addTopic() {
+  async addTopic() {
     const name = this.newTopicName.trim();
 
     if (name === '') {
       return;
     }
 
-    this.topics.push({
-      id: this.nextId,
-      name: name
-    });
+    try {
+      await this.dataService.addTopic(name);
 
-    this.nextId++;
-    this.newTopicName = '';
+      this.newTopicName = '';
 
-    this.saveTopics();
+      await this.loadTopics();
+
+    } catch (error) {
+      console.error('ADD TOPIC ERROR:', error);
+    }
   }
 
-  deleteTopic(id: number) {
-    this.topics = this.topics.filter(
-      topic => topic.id !== id
-    );
+  async deleteTopic(id: string) {
+    try {
+      await this.dataService.deleteTopic(id);
 
-    localStorage.removeItem(`words_${id}`);
-    localStorage.removeItem(`cards_progress_${id}`);
+      await this.loadTopics();
 
-    this.saveTopics();
-  }
-
-  private saveTopics() {
-    localStorage.setItem(
-      'topics',
-      JSON.stringify(this.topics)
-    );
+    } catch (error) {
+      console.error('DELETE TOPIC ERROR:', error);
+    }
   }
 }

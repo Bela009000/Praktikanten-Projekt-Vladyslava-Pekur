@@ -2,6 +2,9 @@ import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase.config';
+import { AuthService } from './services/auth.service';
 
 import {
   createIcons,
@@ -27,13 +30,23 @@ export class App implements OnInit, AfterViewInit {
   username = '';
   accountOpen = false;
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
   ngOnInit(): void {
-    this.username = localStorage.getItem('currentUser') || '';
+    onAuthStateChanged(auth, (user) => {
+      this.username = user?.displayName || '';
+    });
 
     this.router.events
-      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .pipe(
+        filter(
+          (event): event is NavigationEnd =>
+            event instanceof NavigationEnd
+        )
+      )
       .subscribe(() => {
         this.renderIcons();
       });
@@ -47,8 +60,9 @@ export class App implements OnInit, AfterViewInit {
     this.accountOpen = !this.accountOpen;
   }
 
-  logout(): void {
-    localStorage.removeItem('currentUser');
+  async logout(): Promise<void> {
+    await this.authService.logout();
+    this.accountOpen = false;
     this.router.navigate(['/login']);
   }
 

@@ -251,6 +251,16 @@
   color: #9ca3af;
   font-size: 14px;
 }
+.loading-state {
+  padding: 50px 30px;
+  background: white;
+  border: 1px solid #ede9fe;
+  border-radius: 20px;
+  text-align: center;
+  color: #7c3aed;
+  font-size: 16px;
+  font-weight: 600;
+}
 
 @media (max-width: 800px) {
   .topics-container {

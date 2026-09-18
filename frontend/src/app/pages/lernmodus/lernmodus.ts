@@ -1,12 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-
-interface Word {
-  id: number;
-  word: string;
-  translation: string;
-}
+import { DataService, Card } from '../../services/data.service';
 
 @Component({
   selector: 'app-lernmodus',
@@ -16,46 +11,59 @@ interface Word {
 })
 export class Lernmodus {
 
-  topicId = 0;
+  topicId = '';
   topicName = '';
 
-  words: Word[] = [];
+  words: Card[] = [];
 
   currentIndex = 0;
   showAnswer = false;
   isFinished = false;
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(
+    private route: ActivatedRoute,
+    private dataService: DataService
+  ) {}
 
-  ngOnInit() {
-    this.topicId = Number(this.route.snapshot.paramMap.get('id'));
-    this.loadTopic();
-    this.loadWords();
+  async ngOnInit() {
+    this.topicId =
+      this.route.snapshot.paramMap.get('id') || '';
+
+    if (!this.topicId) {
+      return;
+    }
+
+    await this.loadTopic();
+    await this.loadWords();
   }
 
-  private loadTopic() {
-    const savedTopics = localStorage.getItem('topics');
+  private async loadTopic() {
+    try {
+      const topics = await this.dataService.getTopics();
 
-    if (!savedTopics) return;
+      const topic = topics.find(
+        topic => topic.id === this.topicId
+      );
 
-    const topics = JSON.parse(savedTopics);
-
-    const topic = topics.find((topic: any) => topic.id === this.topicId);
-
-    if (topic) {
-      this.topicName = topic.name;
+      if (topic) {
+        this.topicName = topic.name;
+      }
+    } catch (error) {
+      console.error(error);
     }
   }
 
-  private loadWords() {
-    const savedWords = localStorage.getItem(`words_${this.topicId}`);
-
-    if (!savedWords) return;
-
-    this.words = JSON.parse(savedWords);
+  private async loadWords() {
+    try {
+      this.words = await this.dataService.getCards(
+        this.topicId
+      );
+    } catch (error) {
+      console.error(error);
+    }
   }
 
-  get currentWord(): Word | undefined {
+  get currentWord(): Card | undefined {
     return this.words[this.currentIndex];
   }
 
@@ -87,8 +95,13 @@ export class Lernmodus {
       return;
     }
 
-    for (let i = this.words.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+    for (
+      let i = this.words.length - 1;
+      i > 0;
+      i--
+    ) {
+      const j =
+        Math.floor(Math.random() * (i + 1));
 
       [this.words[i], this.words[j]] = [
         this.words[j],
