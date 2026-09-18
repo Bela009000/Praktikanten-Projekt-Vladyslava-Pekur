@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { DataService, Topic, Card } from '../../services/data.service';
+import { DataService } from '../../services/data.service';
 
 interface LernkartenTopic {
   id: string;
@@ -22,9 +22,18 @@ export class MyCards {
 
   topics: LernkartenTopic[] = [];
 
-  private topicColors = ['#7c3aed', '#a855f7', '#c026d3', '#8b5cf6', '#6d28d9'];
+  private topicColors = [
+    '#7c3aed',
+    '#a855f7',
+    '#c026d3',
+    '#8b5cf6',
+    '#6d28d9'
+  ];
 
-  constructor(private dataService: DataService) {}
+  constructor(
+    private dataService: DataService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
 
   async ngOnInit() {
     await this.loadTopics();
@@ -34,9 +43,17 @@ export class MyCards {
     try {
       const allTopics = await this.dataService.getTopics();
 
+      console.log('MY CARDS TOPICS:', allTopics);
+
       const topicResults = await Promise.all(
         allTopics.map(async (topic, index) => {
           const cards = await this.dataService.getCards(topic.id);
+
+          console.log(
+            'MY CARDS:',
+            topic.name,
+            cards
+          );
 
           if (cards.length === 0) {
             return null;
@@ -54,9 +71,11 @@ export class MyCards {
             id: topic.id,
             name: topic.name,
             totalCards: cards.length,
-            learnedCards: learnedCards,
-            progress: progress,
-            color: this.topicColors[index % this.topicColors.length]
+            learnedCards,
+            progress,
+            color: this.topicColors[
+              index % this.topicColors.length
+            ]
           };
         })
       );
@@ -66,8 +85,17 @@ export class MyCards {
           topic !== null
       );
 
+      console.log(
+        'MY CARDS RESULT:',
+        this.topics
+      );
+
+      this.changeDetectorRef.detectChanges();
+
     } catch (error) {
-      console.error(error);
+      console.error('MY CARDS ERROR:', error);
+
+      this.changeDetectorRef.detectChanges();
     }
   }
 }

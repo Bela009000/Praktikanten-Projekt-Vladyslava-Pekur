@@ -142,4 +142,31 @@ export class DataService {
       }
     );
   }
+  async getQuizCount(): Promise<number> {
+  const userId = await this.getUserId();
+
+  const snapshot = await getDocs(
+    collection(db, 'users', userId, 'quizAttempts')
+  );
+
+  return snapshot.size;
+}
+
+async addQuizAttempt(
+  topicId: string,
+  correctAnswers: number,
+  totalQuestions: number
+): Promise<void> {
+  const userId = await this.getUserId();
+
+  await addDoc(
+    collection(db, 'users', userId, 'quizAttempts'),
+    {
+      topicId,
+      correctAnswers,
+      totalQuestions,
+      createdAt: new Date()
+    }
+  );
+}
 }

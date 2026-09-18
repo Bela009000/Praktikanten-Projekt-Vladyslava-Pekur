@@ -431,7 +431,7 @@
 .unknown-button {
   background: white;
   color: #7c3aed;
-
+  text-decoration: none;
   border: 1px solid #c4b5fd;
 }
 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -29,7 +29,10 @@ export class Quiz {
   isStarted = false;
   isFinished = false;
 
-  constructor(private dataService: DataService) {}
+  constructor(
+    private dataService: DataService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
 
   async ngOnInit() {
     await this.loadTopics();
@@ -52,8 +55,10 @@ export class Quiz {
           topic !== null
       );
 
+      this.changeDetectorRef.detectChanges();
+
     } catch (error) {
-      console.error(error);
+      console.error('QUIZ LOAD TOPICS ERROR:', error);
     }
   }
 
@@ -90,8 +95,10 @@ export class Quiz {
       this.isStarted = true;
       this.isFinished = false;
 
+      this.changeDetectorRef.detectChanges();
+
     } catch (error) {
-      console.error(error);
+      console.error('QUIZ START ERROR:', error);
     }
   }
 
@@ -117,21 +124,31 @@ export class Quiz {
     this.showAnswer = true;
   }
 
-  nextQuestion() {
-    if (this.answerIsCorrect) {
-      this.correctAnswers++;
-    }
+  async nextQuestion() {
+  if (this.answerIsCorrect) {
+    this.correctAnswers++;
+  }
 
-    this.userAnswer = '';
-    this.showAnswer = false;
-    this.answerIsCorrect = false;
+  this.userAnswer = '';
+  this.showAnswer = false;
+  this.answerIsCorrect = false;
 
-    if (this.currentIndex < this.words.length - 1) {
-      this.currentIndex++;
-    } else {
-      this.isFinished = true;
+  if (this.currentIndex < this.words.length - 1) {
+    this.currentIndex++;
+  } else {
+    this.isFinished = true;
+
+    try {
+      await this.dataService.addQuizAttempt(
+        this.selectedTopicId!,
+        this.correctAnswers,
+        this.words.length
+      );
+    } catch (error) {
+      console.error('QUIZ SAVE ERROR:', error);
     }
   }
+}
 
   restartQuiz() {
     this.words = this.shuffle([...this.words]);
