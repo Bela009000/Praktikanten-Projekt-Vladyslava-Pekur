@@ -1,10 +1,11 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ChangeDetectorRef  } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase.config';
 import { AuthService } from './services/auth.service';
+
 
 import {
   createIcons,
@@ -32,7 +33,8 @@ export class App implements OnInit, AfterViewInit {
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private changeDetectorRef: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -55,10 +57,17 @@ export class App implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.renderIcons();
   }
+toggleAccount(): void {
+  this.accountOpen = !this.accountOpen;
 
-  toggleAccount(): void {
-    this.accountOpen = !this.accountOpen;
+  if (this.accountOpen) {
+    this.changeDetectorRef.detectChanges();
+
+    requestAnimationFrame(() => {
+      this.renderIcons();
+    });
   }
+}
 
   async logout(): Promise<void> {
     await this.authService.logout();
