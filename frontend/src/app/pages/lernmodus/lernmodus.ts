@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { DataService, Card } from '../../services/data.service';
@@ -22,7 +22,8 @@ export class Lernmodus {
 
   constructor(
     private route: ActivatedRoute,
-    private dataService: DataService
+    private dataService: DataService,
+    private changeDetectorRef: ChangeDetectorRef
   ) {}
 
   async ngOnInit() {
@@ -35,6 +36,8 @@ export class Lernmodus {
 
     await this.loadTopic();
     await this.loadWords();
+
+    this.changeDetectorRef.detectChanges();
   }
 
   private async loadTopic() {
@@ -58,6 +61,8 @@ export class Lernmodus {
       this.words = await this.dataService.getCards(
         this.topicId
       );
+
+      this.changeDetectorRef.detectChanges();
     } catch (error) {
       console.error(error);
     }

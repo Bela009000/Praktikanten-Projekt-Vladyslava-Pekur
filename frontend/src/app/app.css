@@ -71,6 +71,7 @@ body {
 .account-button {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
   padding: 7px 10px;
   background: rgba(255, 255, 255, 0.15);
@@ -82,7 +83,9 @@ body {
   font-size: 14px;
   font-weight: 600;
 }
-
+.account-button span:empty {
+  display: none;
+}
 .account-button:hover {
   background: rgba(255, 255, 255, 0.22);
 }
