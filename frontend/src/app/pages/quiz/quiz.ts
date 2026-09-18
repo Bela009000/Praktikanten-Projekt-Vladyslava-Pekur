@@ -1,18 +1,8 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-
-interface Topic {
-  id: number;
-  name: string;
-}
-
-interface Word {
-  id: number;
-  word: string;
-  translation: string;
-}
+import { DataService, Topic, Card } from '../../services/data.service';
 
 @Component({
   selector: 'app-quiz',
@@ -23,9 +13,9 @@ interface Word {
 export class Quiz {
 
   topics: Topic[] = [];
-  words: Word[] = [];
+  words: Card[] = [];
 
-  selectedTopicId: number | null = null;
+  selectedTopicId: string | null = null;
   selectedTopicName = '';
 
   currentIndex = 0;
@@ -39,69 +29,77 @@ export class Quiz {
   isStarted = false;
   isFinished = false;
 
-  ngOnInit() {
-    this.loadTopics();
+  constructor(
+    private dataService: DataService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
+
+  async ngOnInit() {
+    await this.loadTopics();
   }
 
-  private loadTopics() {
-    const savedTopics = localStorage.getItem('topics');
+  private async loadTopics() {
+    try {
+      const allTopics = await this.dataService.getTopics();
 
-    if (!savedTopics) {
-      return;
+      const topicResults = await Promise.all(
+        allTopics.map(async topic => {
+          const cards = await this.dataService.getCards(topic.id);
+
+          return cards.length > 0 ? topic : null;
+        })
+      );
+
+      this.topics = topicResults.filter(
+        (topic): topic is Topic =>
+          topic !== null
+      );
+
+      this.changeDetectorRef.detectChanges();
+
+    } catch (error) {
+      console.error('QUIZ LOAD TOPICS ERROR:', error);
     }
-
-    const allTopics: Topic[] = JSON.parse(savedTopics);
-
-    this.topics = allTopics.filter(topic => {
-      const savedWords = localStorage.getItem(`words_${topic.id}`);
-
-      if (!savedWords) {
-        return false;
-      }
-
-      const words: Word[] = JSON.parse(savedWords);
-
-      return words.length > 0;
-    });
   }
 
-  startQuiz() {
+  async startQuiz() {
     if (this.selectedTopicId === null) {
       return;
     }
 
-    const savedWords = localStorage.getItem(
-      `words_${this.selectedTopicId}`
-    );
+    try {
+      const cards = await this.dataService.getCards(
+        this.selectedTopicId
+      );
 
-    if (!savedWords) {
-      return;
+      if (cards.length === 0) {
+        return;
+      }
+
+      this.words = this.shuffle([...cards]);
+
+      const selectedTopic = this.topics.find(
+        topic => topic.id === this.selectedTopicId
+      );
+
+      this.selectedTopicName = selectedTopic?.name || '';
+
+      this.currentIndex = 0;
+      this.correctAnswers = 0;
+
+      this.userAnswer = '';
+
+      this.showAnswer = false;
+      this.answerIsCorrect = false;
+
+      this.isStarted = true;
+      this.isFinished = false;
+
+      this.changeDetectorRef.detectChanges();
+
+    } catch (error) {
+      console.error('QUIZ START ERROR:', error);
     }
-
-    this.words = JSON.parse(savedWords);
-
-    if (this.words.length === 0) {
-      return;
-    }
-
-    const selectedTopic = this.topics.find(
-      topic => topic.id === this.selectedTopicId
-    );
-
-    this.selectedTopicName = selectedTopic?.name || '';
-
-    this.words = this.shuffle([...this.words]);
-
-    this.currentIndex = 0;
-    this.correctAnswers = 0;
-
-    this.userAnswer = '';
-
-    this.showAnswer = false;
-    this.answerIsCorrect = false;
-
-    this.isStarted = true;
-    this.isFinished = false;
   }
 
   checkAnswer() {
@@ -118,7 +116,7 @@ export class Quiz {
     );
 
     const correctAnswer = this.normalizeAnswer(
-      this.currentWord.translation
+      this.currentWord.answer
     );
 
     this.answerIsCorrect = userAnswer === correctAnswer;
@@ -126,21 +124,31 @@ export class Quiz {
     this.showAnswer = true;
   }
 
-  nextQuestion() {
-    if (this.answerIsCorrect) {
-      this.correctAnswers++;
-    }
+  async nextQuestion() {
+  if (this.answerIsCorrect) {
+    this.correctAnswers++;
+  }
 
-    this.userAnswer = '';
-    this.showAnswer = false;
-    this.answerIsCorrect = false;
+  this.userAnswer = '';
+  this.showAnswer = false;
+  this.answerIsCorrect = false;
 
-    if (this.currentIndex < this.words.length - 1) {
-      this.currentIndex++;
-    } else {
-      this.isFinished = true;
+  if (this.currentIndex < this.words.length - 1) {
+    this.currentIndex++;
+  } else {
+    this.isFinished = true;
+
+    try {
+      await this.dataService.addQuizAttempt(
+        this.selectedTopicId!,
+        this.correctAnswers,
+        this.words.length
+      );
+    } catch (error) {
+      console.error('QUIZ SAVE ERROR:', error);
     }
   }
+}
 
   restartQuiz() {
     this.words = this.shuffle([...this.words]);
@@ -172,7 +180,7 @@ export class Quiz {
     this.answerIsCorrect = false;
   }
 
-  get currentWord(): Word | undefined {
+  get currentWord(): Card | undefined {
     return this.words[this.currentIndex];
   }
 
@@ -203,7 +211,7 @@ export class Quiz {
       .replace(/\s+/g, ' ');
   }
 
-  private shuffle(words: Word[]): Word[] {
+  private shuffle(words: Card[]): Card[] {
     for (let i = words.length - 1; i > 0; i--) {
       const j = Math.floor(
         Math.random() * (i + 1)

@@ -37,16 +37,31 @@
 
                 <div class="account-divider"></div>
 
-                <a routerLink="/topics">
-                    <i data-lucide="library"></i>
-                    <span>Meine Bibliothek</span>
-                </a>
+                <button type="button" class="account-menu-button" (click)="openUsernameEditor()">
+                    <i data-lucide="user-pen"></i>
+                    <span>Namen ändern</span>
+                </button>
 
+                <div class="username-editor" *ngIf="usernameEditorOpen">
 
-                <a routerLink="/my-cards">
-                    <i data-lucide="playing-cards-fan"></i>
-                    <span>Vergangene Karten</span>
-                </a>
+                    <input type="text" [(ngModel)]="newUsername" placeholder="Neuer Name" maxlength="30" />
+
+                    <button type="button" class="save-username-button" (click)="changeUsername()">
+                        Speichern
+                    </button>
+
+                    <div class="username-message" *ngIf="usernameMessage" [class.success]="usernameSuccess">
+                        {{ usernameMessage }}
+                    </div>
+
+                </div>
+
+                <div class="account-divider"></div>
+
+                <button type="button" class="delete-account-button" (click)="deleteAccount()">
+                    <i data-lucide="trash-2"></i>
+                    <span>Konto löschen</span>
+                </button>
 
             </div>
 

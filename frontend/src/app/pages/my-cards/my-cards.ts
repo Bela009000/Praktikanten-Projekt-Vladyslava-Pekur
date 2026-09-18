@@ -1,14 +1,10 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-
-interface Topic {
-  id: number;
-  name: string;
-}
+import { DataService } from '../../services/data.service';
 
 interface LernkartenTopic {
-  id: number;
+  id: string;
   name: string;
   totalCards: number;
   learnedCards: number;
@@ -26,66 +22,66 @@ export class MyCards {
 
   topics: LernkartenTopic[] = [];
 
-  private topicColors = ['#7c3aed', '#a855f7', '#c026d3', '#8b5cf6', '#6d28d9'];
+  private topicColors = [
+    '#7c3aed',
+    '#a855f7',
+    '#c026d3',
+    '#8b5cf6',
+    '#6d28d9'
+  ];
 
-  ngOnInit() {
-    this.loadTopics();
+  constructor(
+    private dataService: DataService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
+
+  async ngOnInit() {
+    await this.loadTopics();
   }
 
-  private loadTopics() {
-    const savedTopics = localStorage.getItem('topics');
+  private async loadTopics() {
+    try {
+      const allTopics = await this.dataService.getTopics();
 
-    if (!savedTopics) {
-      return;
-    }
+      const topicResults = await Promise.all(
+        allTopics.map(async (topic, index) => {
+          const cards = await this.dataService.getCards(topic.id);
 
-    const allTopics: Topic[] = JSON.parse(savedTopics);
+          if (cards.length === 0) {
+            return null;
+          }
 
-    this.topics = allTopics
-      .map((topic, index) => {
+          const learnedCards = cards.filter(
+            card => card.learned
+          ).length;
 
-        const savedWords = localStorage.getItem(
-          `words_${topic.id}`
-        );
+          const progress = Math.round(
+            (learnedCards / cards.length) * 100
+          );
 
-        if (!savedWords) {
-          return null;
-        }
+          return {
+            id: topic.id,
+            name: topic.name,
+            totalCards: cards.length,
+            learnedCards,
+            progress,
+            color: this.topicColors[
+              index % this.topicColors.length
+            ]
+          };
+        })
+      );
 
-        const words = JSON.parse(savedWords);
-
-        if (words.length === 0) {
-          return null;
-        }
-
-        const savedProgress = localStorage.getItem(
-          `cards_progress_${topic.id}`
-        );
-
-        const learnedIds: number[] = savedProgress
-          ? JSON.parse(savedProgress)
-          : [];
-
-        const learnedCards = words.filter((word: any) =>
-          learnedIds.includes(word.id)
-        ).length;
-
-        const progress = Math.round(
-          (learnedCards / words.length) * 100
-        );
-
-        return {
-          id: topic.id,
-          name: topic.name,
-          totalCards: words.length,
-          learnedCards: learnedCards,
-          progress: progress,
-          color: this.topicColors[index % this.topicColors.length]
-        };
-      })
-      .filter(
+      this.topics = topicResults.filter(
         (topic): topic is LernkartenTopic =>
           topic !== null
       );
+
+      this.changeDetectorRef.detectChanges();
+
+    } catch (error) {
+      console.error('MY CARDS ERROR:', error);
+      this.changeDetectorRef.detectChanges();
+    }
   }
 }

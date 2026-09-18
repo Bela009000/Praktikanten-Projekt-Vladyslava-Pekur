@@ -1,21 +1,3 @@
-:root {
-  --bg-1: #faf7ff;
-  --bg-2: #f5f3ff;
-  --bg-3: #ffffff;
-  --primary: #7c3aed;
-  --primary-dark: #6d28d9;
-  --primary-deep: #4c1d95;
-  --primary-soft: #f3e8ff;
-  --primary-muted: #9ca3af;
-  --text-muted: #6b21a8;
-  --text-dark: #4c4c4c;
-  --white: #ffffff;
-}
-
-* {
-  box-sizing: border-box;
-}
-
 .page {
   min-height: 100vh;
   position: relative;
@@ -107,16 +89,6 @@
   border: 1px solid rgba(124, 58, 237, 0.08);
   border-radius: 14px;
   box-shadow: 0 4px 15px rgba(76, 29, 149, 0.06);
-  opacity: 0;
-  animation: fadeInUp 0.5s ease forwards;
-}
-
-.stat-box:nth-child(2) {
-  animation-delay: 0.08s;
-}
-
-.stat-box:nth-child(3) {
-  animation-delay: 0.16s;
 }
 
 .stat-number {
@@ -139,7 +111,7 @@
 
 .quick-actions-header {
   position: relative;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .celebration-illustration {
@@ -175,16 +147,6 @@
   text-align: center;
   box-shadow: 0 8px 22px rgba(124, 58, 237, 0.2);
   transition: 0.25s ease;
-  opacity: 0;
-  animation: fadeInUp 0.5s ease forwards;
-}
-
-.action-tile:nth-child(2) {
-  animation-delay: 0.08s;
-}
-
-.action-tile:nth-child(3) {
-  animation-delay: 0.16s;
 }
 
 .action-tile:hover {
@@ -240,6 +202,8 @@
   font-size: 16px;
   font-weight: 600;
   transition: 0.25s ease;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 .recent-tile:hover {
@@ -275,18 +239,6 @@
   text-align: center;
   color: #9ca3af;
   font-size: 13px;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 @media (max-width: 800px) {

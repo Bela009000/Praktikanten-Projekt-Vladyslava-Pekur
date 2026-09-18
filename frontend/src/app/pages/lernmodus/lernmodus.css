@@ -1,7 +1,3 @@
-* {
-  box-sizing: border-box;
-}
-
 .learning-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #faf7ff, #f5f3ff, #ffffff);

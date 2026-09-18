@@ -7,11 +7,13 @@
         </a>
 
         <div class="cards-title">
+
             <h1>{{ topicName }}</h1>
 
             <span *ngIf="cards.length > 0">
                 {{ currentIndex + 1 }} / {{ cards.length }}
             </span>
+
         </div>
 
         <button type="button" class="shuffle-button" (click)="shuffleCards()" *ngIf="cards.length > 1 && !isFinished">
@@ -19,7 +21,6 @@
         </button>
 
     </header>
-
 
     <main class="cards-content" *ngIf="cards.length > 0 && !isFinished">
 
@@ -34,7 +35,7 @@
                     </span>
 
                     <div class="card-text">
-                        {{ currentCard.question }}
+                        {{ currentCard?.question }}
                     </div>
 
                     <span class="card-hint">
@@ -43,7 +44,6 @@
 
                 </div>
 
-
                 <div class="flashcard-side flashcard-back">
 
                     <span class="card-label">
@@ -51,7 +51,7 @@
                     </span>
 
                     <div class="card-text">
-                        {{ currentCard.answer }}
+                        {{ currentCard?.answer }}
                     </div>
 
                 </div>
@@ -60,7 +60,6 @@
 
         </div>
 
-
         <div class="previous-card-container">
 
             <button type="button" class="previous-button" (click)="previousCard()" [disabled]="currentIndex === 0">
@@ -68,7 +67,6 @@
             </button>
 
         </div>
-
 
         <div class="learning-actions">
 
@@ -81,7 +79,6 @@
             </button>
 
         </div>
-
 
         <div class="progress-section">
 
@@ -107,7 +104,6 @@
 
     </main>
 
-
     <main class="empty-cards" *ngIf="cards.length === 0">
 
         <h2>Keine Karten vorhanden</h2>
@@ -122,12 +118,13 @@
 
     </main>
 
-
     <div class="finish-overlay" *ngIf="isFinished">
 
         <div class="finish-modal">
 
-            <h2>Lernen abgeschlossen!</h2>
+            <h2>
+                Lernen abgeschlossen!
+            </h2>
 
             <p class="finish-topic">
                 {{ topicName }}
@@ -147,8 +144,10 @@
 
             </div>
 
-
             <div class="finish-actions">
+                <a [routerLink]="['/my-cards']" class="unknown-button">
+                    ← Zurück zu den Karten
+                </a>
 
                 <button type="button" class="restart-button" (click)="restart()">
                     Nochmal starten

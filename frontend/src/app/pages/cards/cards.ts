@@ -1,19 +1,7 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-
-interface Word {
-  id: number;
-  word: string;
-  translation: string;
-}
-
-interface Flashcard {
-  id: number;
-  question: string;
-  answer: string;
-  learned: boolean;
-}
+import { DataService, Card } from '../../services/data.service';
 
 @Component({
   selector: 'app-cards',
@@ -23,96 +11,74 @@ interface Flashcard {
 })
 export class Cards {
 
-  topicId = 0;
+  topicId = '';
   topicName = '';
 
-  cards: Flashcard[] = [];
-  allCards: Flashcard[] = [];
+  cards: Card[] = [];
+  allCards: Card[] = [];
 
   currentIndex = 0;
   isFlipped = false;
   isFinished = false;
 
-  constructor(private route: ActivatedRoute) {}
+  constructor(
+    private route: ActivatedRoute,
+    private dataService: DataService,
+    private changeDetectorRef: ChangeDetectorRef
+  ) {}
 
-  ngOnInit() {
-    this.topicId = Number(
-      this.route.snapshot.paramMap.get('id')
-    );
+  async ngOnInit() {
+    this.topicId =
+      this.route.snapshot.paramMap.get('id') || '';
 
-    this.loadTopic();
-    this.loadCards();
-  }
-
-  private loadTopic() {
-    const savedTopics = localStorage.getItem('topics');
-
-    if (!savedTopics) {
+    if (!this.topicId) {
       return;
     }
 
-    const topics = JSON.parse(savedTopics);
+    await this.loadTopic();
+    await this.loadCards();
 
-    const topic = topics.find(
-      (topic: any) => topic.id === this.topicId
-    );
-
-    if (topic) {
-      this.topicName = topic.name;
-    }
+    this.changeDetectorRef.detectChanges();
   }
 
-  private loadCards() {
-    const savedWords = localStorage.getItem(
-      `words_${this.topicId}`
-    );
+  private async loadTopic() {
+    try {
+      const topics = await this.dataService.getTopics();
 
-    if (!savedWords) {
-      return;
-    }
-
-    const words: Word[] = JSON.parse(savedWords);
-
-    const savedProgress = localStorage.getItem(
-      `cards_progress_${this.topicId}`
-    );
-
-    const learnedIds: number[] = savedProgress
-      ? JSON.parse(savedProgress)
-      : [];
-
-    this.allCards = words.map(word => ({
-      id: word.id,
-      question: word.word,
-      answer: word.translation,
-      learned: learnedIds.includes(word.id)
-    }));
-
-    const savedOrder = localStorage.getItem(
-      `cards_order_${this.topicId}`
-    );
-
-    if (savedOrder) {
-      const order: number[] = JSON.parse(savedOrder);
-
-      const orderedCards = order
-        .map(id => this.allCards.find(card => card.id === id))
-        .filter((card): card is Flashcard => card !== undefined);
-
-      const missingCards = this.allCards.filter(
-        card => !order.includes(card.id)
+      const topic = topics.find(
+        topic => topic.id === this.topicId
       );
 
-      this.cards = [
-        ...orderedCards,
-        ...missingCards
-      ];
-    } else {
-      this.cards = [...this.allCards];
+      if (topic) {
+        this.topicName = topic.name;
+        this.changeDetectorRef.detectChanges();
+      }
+
+    } catch (error) {
+      console.error('LOAD TOPIC ERROR:', error);
     }
   }
 
-  get currentCard(): Flashcard {
+  private async loadCards() {
+    try {
+      const cards = await this.dataService.getCards(
+        this.topicId
+      );
+
+      this.allCards = [...cards];
+      this.cards = [...cards];
+
+      this.changeDetectorRef.detectChanges();
+
+      console.log('CARDS:', this.cards);
+      console.log('CARDS COUNT:', this.cards.length);
+
+    } catch (error) {
+      console.error('LOAD CARDS ERROR:', error);
+    }
+  }
+
+  get currentCard(): Card | undefined {
     return this.cards[this.currentIndex];
   }
 
@@ -138,26 +104,48 @@ export class Cards {
     }
   }
 
-  markNotLearned() {
+  async markNotLearned() {
     if (!this.currentCard) {
       return;
     }
 
     this.currentCard.learned = false;
 
-    this.saveProgress();
-    this.nextCard();
+    try {
+      await this.dataService.setCardLearned(
+        this.topicId,
+        this.currentCard.id,
+        false
+      );
+
+      this.nextCard();
+      this.changeDetectorRef.detectChanges();
+
+    } catch (error) {
+      console.error(error);
+    }
   }
 
-  markLearned() {
+  async markLearned() {
     if (!this.currentCard) {
       return;
     }
 
     this.currentCard.learned = true;
 
-    this.saveProgress();
-    this.nextCard();
+    try {
+      await this.dataService.setCardLearned(
+        this.topicId,
+        this.currentCard.id,
+        true
+      );
+
+      this.nextCard();
+      this.changeDetectorRef.detectChanges();
+
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   private nextCard() {
@@ -171,12 +159,17 @@ export class Cards {
   }
 
   previousCard() {
-    if (this.currentIndex <= 0 || this.isFinished) {
+    if (
+      this.currentIndex <= 0 ||
+      this.isFinished
+    ) {
       return;
     }
 
     this.currentIndex--;
     this.isFlipped = false;
+
+    this.changeDetectorRef.detectChanges();
   }
 
   shuffleCards() {
@@ -184,8 +177,13 @@ export class Cards {
       return;
     }
 
-    for (let i = this.cards.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+    for (
+      let i = this.cards.length - 1;
+      i > 0;
+      i--
+    ) {
+      const j =
+        Math.floor(Math.random() * (i + 1));
 
       [this.cards[i], this.cards[j]] = [
         this.cards[j],
@@ -197,26 +195,40 @@ export class Cards {
     this.isFlipped = false;
     this.isFinished = false;
 
-    this.saveOrder();
+    this.changeDetectorRef.detectChanges();
   }
 
-  restart() {
+  async restart() {
     this.allCards.forEach(card => {
       card.learned = false;
     });
 
-    this.saveProgress();
+    try {
+      for (const card of this.allCards) {
+        await this.dataService.setCardLearned(
+          this.topicId,
+          card.id,
+          false
+        );
+      }
 
-    this.cards = [...this.cards];
-    this.currentIndex = 0;
-    this.isFlipped = false;
-    this.isFinished = false;
+      this.cards = [...this.allCards];
+      this.currentIndex = 0;
+      this.isFlipped = false;
+      this.isFinished = false;
+
+      this.changeDetectorRef.detectChanges();
+
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   continueUnknown() {
-    const unknownCards = this.allCards.filter(
-      card => !card.learned
-    );
+    const unknownCards =
+      this.allCards.filter(
+        card => !card.learned
+      );
 
     if (unknownCards.length === 0) {
       return;
@@ -226,25 +238,7 @@ export class Cards {
     this.currentIndex = 0;
     this.isFlipped = false;
     this.isFinished = false;
-  }
 
-  private saveProgress() {
-    const learnedIds = this.allCards
-      .filter(card => card.learned)
-      .map(card => card.id);
-
-    localStorage.setItem(
-      `cards_progress_${this.topicId}`,
-      JSON.stringify(learnedIds)
-    );
-  }
-
-  private saveOrder() {
-    const order = this.cards.map(card => card.id);
-
-    localStorage.setItem(
-      `cards_order_${this.topicId}`,
-      JSON.stringify(order)
-    );
+    this.changeDetectorRef.detectChanges();
   }
 }

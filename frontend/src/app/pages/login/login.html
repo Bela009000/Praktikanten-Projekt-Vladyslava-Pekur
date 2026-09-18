@@ -3,35 +3,20 @@
     <div class="bg-blob blob-2"></div>
 
     <div class="login-container">
-
         <h2>Login</h2>
 
         <form (ngSubmit)="onSubmit()">
-
             <div class="form-group">
-
-                <label for="username">
-                    Benutzername
-                </label>
-
-                <input type="text" id="username" name="username" [(ngModel)]="username" />
-
+                <label for="loginInput">Benutzername oder E-Mail</label>
+                <input type="text" id="loginInput" name="loginInput" [(ngModel)]="loginInput" />
             </div>
 
-
             <div class="form-group">
-
-                <label for="password">
-                    Passwort
-                </label>
-
+                <label for="password">Passwort</label>
                 <div class="password-wrapper">
-
                     <input [type]="showPassword ? 'text' : 'password'" id="password" name="password"
                         [(ngModel)]="password" />
-
-                    <button type="button" class="toggle-password" (click)="togglePassword()"
-                        [attr.aria-label]="showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'">
+                    <button type="button" class="toggle-password" (click)="togglePassword()">
 
                         <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -48,28 +33,14 @@
                         </svg>
 
                     </button>
-
                 </div>
-
             </div>
 
-
-            <button type="submit">
-                Einloggen
-            </button>
-
+            <button type="submit">Einloggen</button>
         </form>
 
+        <p *ngIf="message" [style.color]="isSuccess ? 'green' : 'red'">{{ message }}</p>
 
-        <p *ngIf="message" [style.color]="isSuccess ? 'green' : 'red'">
-            {{ message }}
-        </p>
-
-
-        <a routerLink="/register" class="back-button">
-            Zurück zur Registrierung
-        </a>
-
+        <a routerLink="/register" class="back-button">Zurück zur Registrierung</a>
     </div>
-
 </div>
