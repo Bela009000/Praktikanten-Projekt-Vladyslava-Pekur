@@ -29,6 +29,10 @@ export interface Card {
 })
 export class DataService {
 
+  private topicsCache = new Map<string, Topic[]>();
+  private cardsCache = new Map<string, Card[]>();
+  private quizCountCache = new Map<string, number>();
+
   constructor(private authService: AuthService) {}
 
   private async getUserId(): Promise<string> {
@@ -44,6 +48,12 @@ export class DataService {
   async getTopics(): Promise<Topic[]> {
     const userId = await this.getUserId();
 
+    const cachedTopics = this.topicsCache.get(userId);
+
+    if (cachedTopics) {
+      return cachedTopics;
+    }
+
     const topicsRef = collection(db, 'topics');
 
     const q = query(
@@ -53,10 +63,14 @@ export class DataService {
 
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(docSnap => ({
+    const topics = snapshot.docs.map(docSnap => ({
       id: docSnap.id,
       name: docSnap.data()['name']
     }));
+
+    this.topicsCache.set(userId, topics);
+
+    return topics;
   }
 
   async addTopic(name: string): Promise<void> {
@@ -66,29 +80,47 @@ export class DataService {
       name,
       userId
     });
+
+    this.topicsCache.delete(userId);
   }
 
   async deleteTopic(topicId: string): Promise<void> {
+    const userId = await this.getUserId();
     const cards = await this.getCards(topicId);
 
     for (const card of cards) {
-      await this.deleteCard(topicId, card.id);
+      await deleteDoc(
+        doc(db, 'topics', topicId, 'cards', card.id)
+      );
     }
 
     await deleteDoc(doc(db, 'topics', topicId));
+
+    this.cardsCache.delete(topicId);
+    this.topicsCache.delete(userId);
   }
 
   async getCards(topicId: string): Promise<Card[]> {
+    const cachedCards = this.cardsCache.get(topicId);
+
+    if (cachedCards) {
+      return cachedCards;
+    }
+
     const snapshot = await getDocs(
       collection(db, 'topics', topicId, 'cards')
     );
 
-    return snapshot.docs.map(docSnap => ({
+    const cards = snapshot.docs.map(docSnap => ({
       id: docSnap.id,
       question: docSnap.data()['question'],
       answer: docSnap.data()['answer'],
       learned: docSnap.data()['learned'] || false
     }));
+
+    this.cardsCache.set(topicId, cards);
+
+    return cards;
   }
 
   async addCard(
@@ -104,6 +136,8 @@ export class DataService {
         learned: false
       }
     );
+
+    this.cardsCache.delete(topicId);
   }
 
   async updateCard(
@@ -119,6 +153,8 @@ export class DataService {
         answer
       }
     );
+
+    this.cardsCache.delete(topicId);
   }
 
   async deleteCard(
@@ -128,6 +164,8 @@ export class DataService {
     await deleteDoc(
       doc(db, 'topics', topicId, 'cards', cardId)
     );
+
+    this.cardsCache.delete(topicId);
   }
 
   async setCardLearned(
@@ -141,32 +179,47 @@ export class DataService {
         learned
       }
     );
+
+    this.cardsCache.delete(topicId);
   }
+
   async getQuizCount(): Promise<number> {
-  const userId = await this.getUserId();
+    const userId = await this.getUserId();
 
-  const snapshot = await getDocs(
-    collection(db, 'users', userId, 'quizAttempts')
-  );
+    const cachedCount = this.quizCountCache.get(userId);
 
-  return snapshot.size;
-}
-
-async addQuizAttempt(
-  topicId: string,
-  correctAnswers: number,
-  totalQuestions: number
-): Promise<void> {
-  const userId = await this.getUserId();
-
-  await addDoc(
-    collection(db, 'users', userId, 'quizAttempts'),
-    {
-      topicId,
-      correctAnswers,
-      totalQuestions,
-      createdAt: new Date()
+    if (cachedCount !== undefined) {
+      return cachedCount;
     }
-  );
-}
+
+    const snapshot = await getDocs(
+      collection(db, 'users', userId, 'quizAttempts')
+    );
+
+    const count = snapshot.size;
+
+    this.quizCountCache.set(userId, count);
+
+    return count;
+  }
+
+  async addQuizAttempt(
+    topicId: string,
+    correctAnswers: number,
+    totalQuestions: number
+  ): Promise<void> {
+    const userId = await this.getUserId();
+
+    await addDoc(
+      collection(db, 'users', userId, 'quizAttempts'),
+      {
+        topicId,
+        correctAnswers,
+        totalQuestions,
+        createdAt: new Date()
+      }
+    );
+
+    this.quizCountCache.delete(userId);
+  }
 }

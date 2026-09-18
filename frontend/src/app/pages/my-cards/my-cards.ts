@@ -43,17 +43,9 @@ export class MyCards {
     try {
       const allTopics = await this.dataService.getTopics();
 
-      console.log('MY CARDS TOPICS:', allTopics);
-
       const topicResults = await Promise.all(
         allTopics.map(async (topic, index) => {
           const cards = await this.dataService.getCards(topic.id);
-
-          console.log(
-            'MY CARDS:',
-            topic.name,
-            cards
-          );
 
           if (cards.length === 0) {
             return null;
@@ -85,16 +77,10 @@ export class MyCards {
           topic !== null
       );
 
-      console.log(
-        'MY CARDS RESULT:',
-        this.topics
-      );
-
       this.changeDetectorRef.detectChanges();
 
     } catch (error) {
       console.error('MY CARDS ERROR:', error);
-
       this.changeDetectorRef.detectChanges();
     }
   }

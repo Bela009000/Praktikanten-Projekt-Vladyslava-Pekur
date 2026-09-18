@@ -18,7 +18,10 @@ export class Register {
   isSuccess = false;
   showPassword = false;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   togglePassword() {
     this.showPassword = !this.showPassword;
@@ -56,11 +59,20 @@ export class Register {
     }
 
     try {
-      await this.authService.register(this.username, this.email, this.password);
+      await this.authService.register(
+        this.username,
+        this.email,
+        this.password
+      );
+
       this.router.navigate(['/home']);
+
     } catch (error: any) {
       this.isSuccess = false;
-      if (error.code === 'auth/email-already-in-use') {
+
+      if (error.code === 'auth/username-already-in-use') {
+        this.message = 'Dieser Benutzername ist bereits registriert.';
+      } else if (error.code === 'auth/email-already-in-use') {
         this.message = 'Diese E-Mail ist bereits registriert.';
       } else if (error.code === 'auth/invalid-email') {
         this.message = 'Ungültige E-Mail-Adresse.';
