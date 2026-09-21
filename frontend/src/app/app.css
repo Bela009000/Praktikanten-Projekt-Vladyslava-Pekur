@@ -73,7 +73,7 @@ body {
   gap: 32px;
 }
 
-.top-menu a {
+.top-menu > a {
   position: relative;
   color: white;
   text-decoration: none;
@@ -82,9 +82,10 @@ body {
   padding: 7px 2px;
 }
 
-.top-menu a:hover {
+.top-menu > a:hover {
   opacity: 0.75;
 }
+
 .top-menu > a.active {
   font-weight: 600;
   opacity: 1;
@@ -98,6 +99,20 @@ body {
   bottom: 0;
   height: 1.2px;
   background: rgba(255, 255, 255, 0.971);
+  border-radius: 2px;
+}
+
+.logo a.active {
+  opacity: 1;
+  font-weight: 700;
+}
+
+.logo a.active::after {
+  content: '';
+  display: block;
+  height: 2px;
+  margin-top: 2px;
+  background: white;
   border-radius: 2px;
 }
 
@@ -189,23 +204,103 @@ body {
   background: #eee8ff;
 }
 
-.account-menu a {
+.account-menu-button {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 8px;
+  background: transparent;
   color: #4c1d95;
+  border: none;
   border-radius: 7px;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 600;
+  text-align: left;
+  cursor: pointer;
 }
 
-.account-menu a:hover {
+.account-menu-button:hover {
   background: #f5f0ff;
-  opacity: 1;
 }
 
-.account-menu a svg {
+.account-menu-button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.username-editor {
+  padding: 8px;
+}
+
+.username-editor input {
+  width: 100%;
+  padding: 9px 10px;
+  background: white;
+  border: 1px solid #ddd6fe;
+  border-radius: 7px;
+  color: #4c1d95;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.username-editor input:focus {
+  border-color: #7c3aed;
+}
+
+.save-username-button {
+  width: 100%;
+  margin-top: 7px;
+  padding: 9px;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-username-button:hover {
+  background: #6d28d9;
+}
+
+.username-message {
+  margin-top: 7px;
+  color: #dc2626;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.username-message.success {
+  color: #16a34a;
+}
+
+.delete-account-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px;
+  background: transparent;
+  color: #dc2626;
+  border: none;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.delete-account-button:hover {
+  background: #fef2f2;
+}
+
+.delete-account-button svg {
   width: 17px;
   height: 17px;
 }
@@ -225,10 +320,6 @@ body {
   font-weight: 600;
 }
 
-.app-content {
-  padding-top: 55px;
-}
-
 .logout-button-top svg {
   width: 16px;
   height: 16px;
@@ -237,6 +328,10 @@ body {
 
 .logout-button-top:hover {
   background: rgba(243, 13, 13, 0.12);
+}
+
+.app-content {
+  padding-top: 55px;
 }
 
 @media (max-width: 700px) {
