@@ -9,31 +9,38 @@
             <a routerLink="/home" class="back-button">
                 ← Zurück zum Hauptmenü
             </a>
-            <div class="search-box">
-                <input type="text" placeholder="Thema suchen..." [(ngModel)]="searchTerm" name="searchTerm" />
-            </div>
         </div>
+
+
 
         <div class="topics-title">
             <h1>Meine Themen</h1>
         </div>
 
-        <form class="add-topic-form" (ngSubmit)="addTopic()">
-
-            <input type="text" placeholder="Neues Thema (z. B. Mathematik)" [(ngModel)]="newTopicName"
-                name="newTopicName" />
-
-            <button type="submit">
-                + Thema hinzufügen
-            </button>
-
-        </form>
+        <div class="search-box">
+            <input type="text" placeholder="Thema suchen..." [(ngModel)]="searchTerm" name="searchTerm" />
+        </div>
 
         <div class="loading-state" *ngIf="isLoading">
             Themen werden geladen...
         </div>
 
-        <div class="topic-list" *ngIf="filteredTopics.length > 0">
+        <div class="topic-list" *ngIf="!isLoading">
+
+            <div class="topic-card add-topic-tile" *ngIf="!isAddingTopic" (click)="startAddTopic()">
+                <span class="add-icon">+</span>
+                <span>Neues Thema</span>
+            </div>
+
+            <form class="topic-card add-topic-form-inline" *ngIf="isAddingTopic" (ngSubmit)="addTopic()">
+                <input type="text" placeholder="Themenname eingeben..." [(ngModel)]="newTopicName" name="newTopicName"
+                    autofocus />
+                <div class="add-topic-actions">
+                    <button type="submit" class="save-topic-button">Speichern</button>
+                    <button type="button" class="cancel-topic-button" (click)="cancelAddTopic()">Abbrechen</button>
+                </div>
+            </form>
+
             <div class="topic-card" *ngFor="let topic of filteredTopics">
                 <div class="topic-info">
 
@@ -73,14 +80,9 @@
 
         </div>
 
-        <div class="empty-state" *ngIf="!isLoading && topics.length === 0">
-
-            <h2>Noch keine Themen</h2>
-
-            <p>
-                Erstelle dein erstes Thema und füge Wörter hinzu.
-            </p>
-
+        <div class="empty-state" *ngIf="!isLoading && topics.length > 0 && filteredTopics.length === 0">
+            <h2>Keine Treffer</h2>
+            <p>Es wurde kein Thema mit „{{ searchTerm }}" gefunden.</p>
         </div>
 
     </div>
