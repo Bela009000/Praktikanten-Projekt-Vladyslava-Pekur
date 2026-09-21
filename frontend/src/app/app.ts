@@ -1,39 +1,11 @@
-import {
-  Component,
-  OnInit,
-  AfterViewInit,
-  ChangeDetectorRef
-} from '@angular/core';
-
-import {
-  Router,
-  RouterOutlet,
-  RouterLink,
-  NavigationEnd
-} from '@angular/router';
-
+import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { Router, RouterOutlet, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { filter } from 'rxjs/operators';
-
 import { onAuthStateChanged } from 'firebase/auth';
+import { createIcons, PlayingCards, User, UserPen, Trash2, LogOut } from 'lucide';
 import { auth } from './firebase.config';
-
 import { AuthService } from './services/auth.service';
-
-import {
-  createIcons,
-  PlayingCards,
-  User,
-  Library,
-  History,
-  PlayingCardsFan,
-  LogOut,
-  GraduationCap,
-  Brain,
-  UserPen,
-  Trash2
-} from 'lucide';
 
 @Component({
   selector: 'app-root',
@@ -48,10 +20,8 @@ import {
   styleUrl: './app.css'
 })
 export class App implements OnInit, AfterViewInit {
-
   username = '';
   accountOpen = false;
-
   usernameEditorOpen = false;
   newUsername = '';
   usernameMessage = '';
@@ -59,30 +29,46 @@ export class App implements OnInit, AfterViewInit {
 
   constructor(
     private router: Router,
-    private authService: AuthService,
-    private changeDetectorRef: ChangeDetectorRef
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-
     onAuthStateChanged(auth, (user) => {
       this.username = user?.displayName || '';
     });
-
-    this.router.events
-      .pipe(
-        filter(
-          (event): event is NavigationEnd =>
-            event instanceof NavigationEnd
-        )
-      )
-      .subscribe(() => {
-        this.renderIcons();
-      });
   }
 
   ngAfterViewInit(): void {
     this.renderIcons();
+  }
+
+  private renderIcons(): void {
+    createIcons({
+      icons: {
+        PlayingCards,
+        User,
+        UserPen,
+        Trash2,
+        LogOut
+      }
+    });
+  }
+
+  isLernkartenActive(): boolean {
+    return this.router.url.startsWith('/my-cards');
+  }
+
+  isThemenActive(): boolean {
+    return (
+      this.router.url === '/topics' ||
+      this.router.url.startsWith('/topic/') ||
+      this.router.url.startsWith('/cards/') ||
+      this.router.url.startsWith('/lernmodus/')
+    );
+  }
+
+  isQuizActive(): boolean {
+    return this.router.url === '/quiz';
   }
 
   toggleAccount(): void {
@@ -93,31 +79,23 @@ export class App implements OnInit, AfterViewInit {
       this.usernameMessage = '';
     }
 
-    if (this.accountOpen) {
-      this.changeDetectorRef.detectChanges();
-
-      requestAnimationFrame(() => {
-        this.renderIcons();
-      });
-    }
+    setTimeout(() => {
+      this.renderIcons();
+    });
   }
 
   openUsernameEditor(): void {
     this.usernameEditorOpen = !this.usernameEditorOpen;
-
     this.newUsername = this.username;
     this.usernameMessage = '';
     this.usernameSuccess = false;
 
-    this.changeDetectorRef.detectChanges();
-
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       this.renderIcons();
     });
   }
 
   async changeUsername(): Promise<void> {
-
     const username = this.newUsername.trim();
 
     if (username === '') {
@@ -141,7 +119,6 @@ export class App implements OnInit, AfterViewInit {
     }
 
     try {
-
       await this.authService.changeUsername(username);
 
       this.username = username;
@@ -149,11 +126,7 @@ export class App implements OnInit, AfterViewInit {
       this.usernameSuccess = true;
       this.usernameMessage =
         'Der Name wurde erfolgreich geändert.';
-
-      this.changeDetectorRef.detectChanges();
-
     } catch (error: any) {
-
       this.usernameSuccess = false;
 
       if (error.code === 'auth/username-already-in-use') {
@@ -170,7 +143,6 @@ export class App implements OnInit, AfterViewInit {
   }
 
   async deleteAccount(): Promise<void> {
-
     const confirmed = confirm(
       'Möchtest du dein Konto wirklich löschen? Alle deine Themen, Lernkarten und Quiz-Daten werden gelöscht.'
     );
@@ -180,16 +152,13 @@ export class App implements OnInit, AfterViewInit {
     }
 
     try {
-
       await this.authService.deleteAccount();
 
       this.accountOpen = false;
       this.usernameEditorOpen = false;
 
       await this.router.navigate(['/login']);
-
     } catch (error: any) {
-
       console.error('DELETE ACCOUNT ERROR:', error);
 
       if (error.code === 'auth/requires-recent-login') {
@@ -206,32 +175,13 @@ export class App implements OnInit, AfterViewInit {
 
   async logout(): Promise<void> {
     await this.authService.logout();
-
     this.accountOpen = false;
-
-    this.router.navigate(['/login']);
+    await this.router.navigate(['/login']);
   }
 
   get userInitial(): string {
     return this.username
       ? this.username.charAt(0).toUpperCase()
       : '?';
-  }
-
-  private renderIcons(): void {
-    createIcons({
-      icons: {
-        PlayingCards,
-        User,
-        Library,
-        History,
-        PlayingCardsFan,
-        LogOut,
-        GraduationCap,
-        Brain,
-        UserPen,
-        Trash2
-      }
-    });
   }
 }

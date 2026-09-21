@@ -1,6 +1,7 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { AfterViewInit, Component, ChangeDetectorRef } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { createIcons, PlayingCardsFan, GraduationCap, Brain } from 'lucide';
 import { AuthService } from '../../services/auth.service';
 import { DataService, Topic } from '../../services/data.service';
 
@@ -14,7 +15,7 @@ interface HomeTopic extends Topic {
   styleUrl: './home.css',
   templateUrl: './home.html',
 })
-export class Home {
+export class Home implements AfterViewInit {
 
   username = '';
 
@@ -46,6 +47,24 @@ export class Home {
     await this.loadTopics();
 
     this.changeDetectorRef.detectChanges();
+
+    setTimeout(() => {
+      this.renderIcons();
+    });
+  }
+
+  ngAfterViewInit(): void {
+    this.renderIcons();
+  }
+
+  private renderIcons(): void {
+    createIcons({
+      icons: {
+        PlayingCardsFan,
+        GraduationCap,
+        Brain
+      }
+    });
   }
 
   private async loadTopics() {
@@ -76,10 +95,10 @@ export class Home {
         (total, topic) => total + topic.cardCount,
         0
       );
-      this.quizCount =
-  await this.dataService.getQuizCount();
 
-this.changeDetectorRef.detectChanges();
+      this.quizCount = await this.dataService.getQuizCount();
+
+      this.changeDetectorRef.detectChanges();
 
     } catch (error) {
       console.error('HOME LOAD ERROR:', error);
