@@ -14,10 +14,8 @@
         <div class="account-wrapper">
 
             <button type="button" class="account-button" (click)="toggleAccount()">
-
                 <i data-lucide="user"></i>
                 <span>{{ username }}</span>
-
             </button>
 
             <div class="account-menu" *ngIf="accountOpen">
@@ -44,7 +42,8 @@
 
                 <div class="username-editor" *ngIf="usernameEditorOpen">
 
-                    <input type="text" [(ngModel)]="newUsername" placeholder="Neuer Name" maxlength="30" />
+                    <input id="newUsername" name="newUsername" type="text" [(ngModel)]="newUsername"
+                        placeholder="Neuer Name" maxlength="30" />
 
                     <button type="button" class="save-username-button" (click)="changeUsername()">
                         Speichern
@@ -68,10 +67,8 @@
         </div>
 
         <button type="button" class="logout-button-top" (click)="logout()">
-
             <i data-lucide="log-out"></i>
             <span>Ausloggen</span>
-
         </button>
 
     </nav>
