@@ -17,6 +17,7 @@ interface HomeTopic extends Topic {
 export class Home {
 
   username = '';
+
   topics: HomeTopic[] = [];
   recentTopics: HomeTopic[] = [];
 
@@ -53,7 +54,10 @@ export class Home {
 
       const topicResults = await Promise.all(
         allTopics.map(async topic => {
-          const cards = await this.dataService.getCards(topic.id);
+
+          const cards = await this.dataService.getCards(
+            topic.id
+          );
 
           return {
             ...topic,
@@ -72,10 +76,10 @@ export class Home {
         (total, topic) => total + topic.cardCount,
         0
       );
+      this.quizCount =
+  await this.dataService.getQuizCount();
 
-      this.quizCount = await this.dataService.getQuizCount();
-
-      this.changeDetectorRef.detectChanges();
+this.changeDetectorRef.detectChanges();
 
     } catch (error) {
       console.error('HOME LOAD ERROR:', error);
