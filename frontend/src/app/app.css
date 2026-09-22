@@ -90,6 +90,7 @@ body {
   gap: 14px;
   min-width: 0;
   margin-left: auto;
+  flex-wrap: nowrap;
 }
 
 .nav-links {
@@ -109,7 +110,7 @@ body {
   align-items: center;
   justify-content: center;
   height: 38px;
-  padding: 0 13px;
+  padding: 0 19px;
   color: white;
   text-decoration: none;
   font-size: 17px;
@@ -121,6 +122,7 @@ body {
     font-weight 0.2s ease,
     background 0.2s ease,
     border-color 0.2s ease;
+  transform: translateX(-20px);
 }
 
 .nav-links > a:hover {
@@ -150,19 +152,19 @@ body {
 }
 
 .active-slider.slider-lernkarten {
-  left: 0;
-  width: 114px;
+  left: -14px;
+  width: 116px;
   opacity: 1;
 }
 
 .active-slider.slider-themen {
-  left: 109px;
-  width: 91px;
+  left: 110px;
+  width: 95px;
   opacity: 1;
 }
 
 .active-slider.slider-quiz {
-  left: 204px;
+  left: 218px;
   width: 66px;
   opacity: 1;
 }
@@ -405,7 +407,7 @@ app-root {
 
 @media (min-width: 901px) {
   .nav-links {
-    transform: translateX(-40px);
+    transform: none;
   }
 }
 
