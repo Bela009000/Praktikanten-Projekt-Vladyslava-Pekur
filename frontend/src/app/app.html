@@ -1,23 +1,34 @@
-<header class="topbar">
+<header class="topbar" *ngIf="!isLoginPage()">
 
     <div class="logo">
-        <i data-lucide="playing-cards"></i>
-        <a routerLink="/home">Lernkarten App</a>
+        <a routerLink="/home" class="logo-link">
+            <i data-lucide="playing-cards"></i>
+            <span>Lernkarten App</span>
+        </a>
     </div>
 
     <nav class="top-menu">
 
-        <a routerLink="/my-cards" [class.active]="isLernkartenActive()">
-            Lernkarten
-        </a>
+        <div class="nav-links">
 
-        <a routerLink="/topics" [class.active]="isThemenActive()">
-            Themen
-        </a>
+            <span *ngIf="isLernkartenActive() || isThemenActive() || isQuizActive()" class="active-slider"
+                [class.slider-lernkarten]="isLernkartenActive()" [class.slider-themen]="isThemenActive()"
+                [class.slider-quiz]="isQuizActive()">
+            </span>
 
-        <a routerLink="/quiz" [class.active]="isQuizActive()">
-            Quiz
-        </a>
+            <a routerLink="/my-cards" [class.active]="isLernkartenActive()">
+                Lernkarten
+            </a>
+
+            <a routerLink="/topics" [class.active]="isThemenActive()">
+                Themen
+            </a>
+
+            <a routerLink="/quiz" [class.active]="isQuizActive()">
+                Quiz
+            </a>
+
+        </div>
 
         <div class="account-wrapper">
 
@@ -95,6 +106,8 @@
 
 </header>
 
-<div class="app-content">
+<div class="app-content" [class.login-content]="isLoginPage()">
+
     <router-outlet></router-outlet>
+
 </div>

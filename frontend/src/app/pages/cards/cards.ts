@@ -21,6 +21,10 @@ export class Cards {
   isFlipped = false;
   isFinished = false;
 
+  // false = Frage → Antwort
+  // true  = Antwort → Frage
+  isReversed = false;
+
   constructor(
     private route: ActivatedRoute,
     private dataService: DataService,
@@ -51,7 +55,6 @@ export class Cards {
 
       if (topic) {
         this.topicName = topic.name;
-        this.changeDetectorRef.detectChanges();
       }
 
     } catch (error) {
@@ -67,8 +70,6 @@ export class Cards {
 
       this.allCards = [...cards];
       this.cards = [...cards];
-
-      this.changeDetectorRef.detectChanges();
 
       console.log('CARDS:', this.cards);
       console.log('CARDS COUNT:', this.cards.length);
@@ -98,13 +99,31 @@ export class Cards {
     );
   }
 
-  flipCard() {
+  /**
+   * Wechselt die Richtung der Karten:
+   *
+   * Normal:
+   * Frage → Antwort
+   *
+   * Umgekehrt:
+   * Antwort → Frage
+   */
+  toggleLanguage(): void {
+    this.isReversed = !this.isReversed;
+
+    // Nach dem Wechsel immer wieder die Vorderseite anzeigen
+    this.isFlipped = false;
+
+    this.changeDetectorRef.detectChanges();
+  }
+
+  flipCard(): void {
     if (!this.isFinished && this.currentCard) {
       this.isFlipped = !this.isFlipped;
     }
   }
 
-  async markNotLearned() {
+  async markNotLearned(): Promise<void> {
     if (!this.currentCard) {
       return;
     }
@@ -122,11 +141,11 @@ export class Cards {
       this.changeDetectorRef.detectChanges();
 
     } catch (error) {
-      console.error(error);
+      console.error('MARK NOT LEARNED ERROR:', error);
     }
   }
 
-  async markLearned() {
+  async markLearned(): Promise<void> {
     if (!this.currentCard) {
       return;
     }
@@ -144,11 +163,11 @@ export class Cards {
       this.changeDetectorRef.detectChanges();
 
     } catch (error) {
-      console.error(error);
+      console.error('MARK LEARNED ERROR:', error);
     }
   }
 
-  private nextCard() {
+  private nextCard(): void {
     this.isFlipped = false;
 
     if (this.currentIndex < this.cards.length - 1) {
@@ -158,7 +177,7 @@ export class Cards {
     }
   }
 
-  previousCard() {
+  previousCard(): void {
     if (
       this.currentIndex <= 0 ||
       this.isFinished
@@ -172,7 +191,7 @@ export class Cards {
     this.changeDetectorRef.detectChanges();
   }
 
-  shuffleCards() {
+  shuffleCards(): void {
     if (this.cards.length <= 1) {
       return;
     }
@@ -198,7 +217,7 @@ export class Cards {
     this.changeDetectorRef.detectChanges();
   }
 
-  async restart() {
+  async restart(): Promise<void> {
     this.allCards.forEach(card => {
       card.learned = false;
     });
@@ -220,11 +239,11 @@ export class Cards {
       this.changeDetectorRef.detectChanges();
 
     } catch (error) {
-      console.error(error);
+      console.error('RESTART ERROR:', error);
     }
   }
 
-  continueUnknown() {
+  continueUnknown(): void {
     const unknownCards =
       this.allCards.filter(
         card => !card.learned

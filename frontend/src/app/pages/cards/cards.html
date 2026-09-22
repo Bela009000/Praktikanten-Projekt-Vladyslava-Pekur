@@ -16,11 +16,23 @@
 
         </div>
 
-        <button type="button" class="shuffle-button" (click)="shuffleCards()" *ngIf="cards.length > 1 && !isFinished">
-            Reihenfolge mischen
-        </button>
+        <div class="header-actions">
+
+            <button type="button" class="language-switch" (click)="toggleLanguage()"
+                *ngIf="cards.length > 0 && !isFinished">
+                ⇄
+                {{ isReversed ? 'Frage zuerst' : 'Antwort zuerst' }}
+            </button>
+
+            <button type="button" class="shuffle-button" (click)="shuffleCards()"
+                *ngIf="cards.length > 1 && !isFinished">
+                Reihenfolge mischen
+            </button>
+
+        </div>
 
     </header>
+
 
     <main class="cards-content" *ngIf="cards.length > 0 && !isFinished">
 
@@ -28,30 +40,51 @@
 
             <div class="flashcard" [class.flipped]="isFlipped">
 
+                <!-- Vorderseite -->
                 <div class="flashcard-side flashcard-front">
 
                     <span class="card-label">
-                        Frage
+
+                        {{ isReversed ? 'Antwort' : 'Frage' }}
+
                     </span>
 
                     <div class="card-text">
-                        {{ currentCard?.question }}
+
+                        {{
+                        isReversed
+                        ? currentCard?.answer
+                        : currentCard?.question
+                        }}
+
                     </div>
 
                     <span class="card-hint">
-                        Klicken, um die Antwort zu sehen
+                        Klicken, um die
+                        {{ isReversed ? 'Frage' : 'Antwort' }}
+                        zu sehen
                     </span>
 
                 </div>
 
+
+                <!-- Rückseite -->
                 <div class="flashcard-side flashcard-back">
 
                     <span class="card-label">
-                        Antwort
+
+                        {{ isReversed ? 'Frage' : 'Antwort' }}
+
                     </span>
 
                     <div class="card-text">
-                        {{ currentCard?.answer }}
+
+                        {{
+                        isReversed
+                        ? currentCard?.question
+                        : currentCard?.answer
+                        }}
+
                     </div>
 
                 </div>
@@ -60,6 +93,7 @@
 
         </div>
 
+
         <div class="previous-card-container">
 
             <button type="button" class="previous-button" (click)="previousCard()" [disabled]="currentIndex === 0">
@@ -67,6 +101,7 @@
             </button>
 
         </div>
+
 
         <div class="learning-actions">
 
@@ -80,12 +115,15 @@
 
         </div>
 
+
         <div class="progress-section">
 
             <div class="progress-info">
 
                 <span>
-                    {{ learnedCount }} von {{ allCards.length }} Karten gelernt
+                    {{ learnedCount }} von
+                    {{ allCards.length }}
+                    Karten gelernt
                 </span>
 
                 <span>
@@ -104,6 +142,8 @@
 
     </main>
 
+
+    <!-- Keine Karten -->
     <main class="empty-cards" *ngIf="cards.length === 0">
 
         <h2>Keine Karten vorhanden</h2>
@@ -118,6 +158,8 @@
 
     </main>
 
+
+    <!-- Abschluss -->
     <div class="finish-overlay" *ngIf="isFinished">
 
         <div class="finish-modal">
@@ -135,7 +177,9 @@
             </div>
 
             <p class="result-text">
-                {{ learnedCount }} von {{ allCards.length }} Karten gelernt
+                {{ learnedCount }} von
+                {{ allCards.length }}
+                Karten gelernt
             </p>
 
             <div class="result-progress">
@@ -144,7 +188,9 @@
 
             </div>
 
+
             <div class="finish-actions">
+
                 <a [routerLink]="['/my-cards']" class="unknown-button">
                     ← Zurück zu den Karten
                 </a>

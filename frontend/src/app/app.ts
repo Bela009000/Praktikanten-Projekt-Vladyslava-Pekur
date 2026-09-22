@@ -1,11 +1,29 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
-import { Router, RouterOutlet, RouterLink } from '@angular/router';
+import {
+  Router,
+  RouterOutlet,
+  RouterLink,
+  NavigationEnd
+} from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { onAuthStateChanged } from 'firebase/auth';
-import { createIcons, PlayingCards, User, UserPen, Trash2, LogOut } from 'lucide';
+
+import {
+  createIcons,
+  PlayingCards,
+  User,
+  UserPen,
+  Trash2,
+  LogOut,
+  PlayingCardsFan,
+  GraduationCap,
+  Brain
+} from 'lucide';
+
 import { auth } from './firebase.config';
 import { AuthService } from './services/auth.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -20,6 +38,7 @@ import { AuthService } from './services/auth.service';
   styleUrl: './app.css'
 })
 export class App implements OnInit, AfterViewInit {
+
   username = '';
   accountOpen = false;
   usernameEditorOpen = false;
@@ -33,29 +52,62 @@ export class App implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+
     onAuthStateChanged(auth, (user) => {
       this.username = user?.displayName || '';
     });
+
+    /*
+     * Icons are rendered after every route change.
+     * This is important because the content of router-outlet
+     * changes after navigation.
+     */
+    this.router.events
+      .pipe(
+        filter(event => event instanceof NavigationEnd)
+      )
+      .subscribe(() => {
+
+        setTimeout(() => {
+          this.renderIcons();
+        }, 0);
+
+      });
   }
 
   ngAfterViewInit(): void {
     this.renderIcons();
   }
 
+  /**
+   * Central place for all Lucide icons used in the application.
+   */
   private renderIcons(): void {
+
     createIcons({
       icons: {
+        // Topbar
         PlayingCards,
         User,
         UserPen,
         Trash2,
-        LogOut
+        LogOut,
+
+        // Home
+        PlayingCardsFan,
+        GraduationCap,
+        Brain
       }
     });
+
   }
 
   isLernkartenActive(): boolean {
     return this.router.url.startsWith('/my-cards');
+  }
+
+  isLoginPage(): boolean {
+    return this.router.url === '/login';
   }
 
   isThemenActive(): boolean {
@@ -72,6 +124,7 @@ export class App implements OnInit, AfterViewInit {
   }
 
   toggleAccount(): void {
+
     this.accountOpen = !this.accountOpen;
 
     if (!this.accountOpen) {
@@ -81,21 +134,24 @@ export class App implements OnInit, AfterViewInit {
 
     setTimeout(() => {
       this.renderIcons();
-    });
+    }, 0);
   }
 
   openUsernameEditor(): void {
+
     this.usernameEditorOpen = !this.usernameEditorOpen;
+
     this.newUsername = this.username;
     this.usernameMessage = '';
     this.usernameSuccess = false;
 
     setTimeout(() => {
       this.renderIcons();
-    });
+    }, 0);
   }
 
   async changeUsername(): Promise<void> {
+
     const username = this.newUsername.trim();
 
     if (username === '') {
@@ -119,6 +175,7 @@ export class App implements OnInit, AfterViewInit {
     }
 
     try {
+
       await this.authService.changeUsername(username);
 
       this.username = username;
@@ -126,23 +183,32 @@ export class App implements OnInit, AfterViewInit {
       this.usernameSuccess = true;
       this.usernameMessage =
         'Der Name wurde erfolgreich geändert.';
+
     } catch (error: any) {
+
       this.usernameSuccess = false;
 
       if (error.code === 'auth/username-already-in-use') {
+
         this.usernameMessage =
           'Dieser Benutzername ist bereits registriert.';
+
       } else if (error.code === 'auth/invalid-username') {
+
         this.usernameMessage =
           'Dieser Benutzername ist nicht gültig.';
+
       } else {
+
         this.usernameMessage =
           'Der Name konnte nicht geändert werden.';
+
       }
     }
   }
 
   async deleteAccount(): Promise<void> {
+
     const confirmed = confirm(
       'Möchtest du dein Konto wirklich löschen? Alle deine Themen, Lernkarten und Quiz-Daten werden gelöscht.'
     );
@@ -152,34 +218,45 @@ export class App implements OnInit, AfterViewInit {
     }
 
     try {
+
       await this.authService.deleteAccount();
 
       this.accountOpen = false;
       this.usernameEditorOpen = false;
 
       await this.router.navigate(['/login']);
+
     } catch (error: any) {
+
       console.error('DELETE ACCOUNT ERROR:', error);
 
       if (error.code === 'auth/requires-recent-login') {
+
         alert(
           'Bitte melde dich erneut an und versuche es danach noch einmal.'
         );
+
       } else {
+
         alert(
           'Das Konto konnte nicht gelöscht werden. Bitte versuche es erneut.'
         );
+
       }
     }
   }
 
   async logout(): Promise<void> {
+
     await this.authService.logout();
+
     this.accountOpen = false;
+
     await this.router.navigate(['/login']);
   }
 
   get userInitial(): string {
+
     return this.username
       ? this.username.charAt(0).toUpperCase()
       : '?';
