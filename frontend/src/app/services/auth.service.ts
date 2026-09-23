@@ -37,13 +37,19 @@ export class AuthService {
     });
   }
 
-  async waitForAuth(): Promise<User | null> {
-    await auth.authStateReady();
-
-    this.currentUser = auth.currentUser;
-
+ async waitForAuth(): Promise<User | null> {
+  if (this.currentUser) {
     return this.currentUser;
   }
+
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      this.currentUser = user;
+      unsubscribe();
+      resolve(user);
+    });
+  });
+}
 
   async register(
     username: string,

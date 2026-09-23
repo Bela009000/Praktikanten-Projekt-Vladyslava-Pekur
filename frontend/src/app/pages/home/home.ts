@@ -1,8 +1,10 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+
 import { AuthService } from '../../services/auth.service';
-import { DataService, Topic } from '../../services/data.service';
+import { DataService } from '../../services/data.service';
+import type { Topic } from '../../services/data.service';
 
 interface HomeTopic extends Topic {
   cardCount: number;
@@ -17,6 +19,7 @@ interface HomeTopic extends Topic {
 export class Home {
 
   username = '';
+
   topics: HomeTopic[] = [];
   recentTopics: HomeTopic[] = [];
 
@@ -53,6 +56,7 @@ export class Home {
 
       const topicResults = await Promise.all(
         allTopics.map(async topic => {
+
           const cards = await this.dataService.getCards(topic.id);
 
           return {

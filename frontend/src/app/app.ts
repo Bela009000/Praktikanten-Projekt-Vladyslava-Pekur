@@ -1,39 +1,29 @@
-import {
-  Component,
-  OnInit,
-  AfterViewInit,
-  ChangeDetectorRef
-} from '@angular/core';
-
+import { AfterViewInit, Component, OnInit } from '@angular/core';
 import {
   Router,
   RouterOutlet,
   RouterLink,
   NavigationEnd
 } from '@angular/router';
-
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { filter } from 'rxjs/operators';
-
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase.config';
-
-import { AuthService } from './services/auth.service';
 
 import {
   createIcons,
   PlayingCards,
   User,
-  Library,
-  History,
-  PlayingCardsFan,
-  LogOut,
-  GraduationCap,
-  Brain,
   UserPen,
-  Trash2
+  Trash2,
+  LogOut,
+  PlayingCardsFan,
+  GraduationCap,
+  Brain
 } from 'lucide';
+
+import { auth } from './firebase.config';
+import { AuthService } from './services/auth.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -51,7 +41,6 @@ export class App implements OnInit, AfterViewInit {
 
   username = '';
   accountOpen = false;
-
   usernameEditorOpen = false;
   newUsername = '';
   usernameMessage = '';
@@ -59,8 +48,7 @@ export class App implements OnInit, AfterViewInit {
 
   constructor(
     private router: Router,
-    private authService: AuthService,
-    private changeDetectorRef: ChangeDetectorRef
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -69,23 +57,86 @@ export class App implements OnInit, AfterViewInit {
       this.username = user?.displayName || '';
     });
 
+    /*
+     * Icons are rendered after every route change.
+     * This is important because the content of router-outlet
+     * changes after navigation.
+     */
     this.router.events
       .pipe(
-        filter(
-          (event): event is NavigationEnd =>
-            event instanceof NavigationEnd
-        )
+        filter(event => event instanceof NavigationEnd)
       )
       .subscribe(() => {
-        this.renderIcons();
+
+        setTimeout(() => {
+          this.renderIcons();
+        }, 0);
+
       });
   }
+  onDocumentClick(event: MouseEvent): void {
+  const target = event.target as HTMLElement;
+
+  const accountWrapper = target.closest('.account-wrapper');
+
+  if (!accountWrapper) {
+    this.accountOpen = false;
+    this.usernameEditorOpen = false;
+    this.usernameMessage = '';
+  }
+}
 
   ngAfterViewInit(): void {
     this.renderIcons();
   }
 
+  /**
+   * Central place for all Lucide icons used in the application.
+   */
+  private renderIcons(): void {
+
+    createIcons({
+      icons: {
+        // Topbar
+        PlayingCards,
+        User,
+        UserPen,
+        Trash2,
+        LogOut,
+
+        // Home
+        PlayingCardsFan,
+        GraduationCap,
+        Brain
+      }
+    });
+
+  }
+
+  isLernkartenActive(): boolean {
+    return this.router.url.startsWith('/my-cards');
+  }
+
+  isLoginPage(): boolean {
+  return this.router.url === '/login' || this.router.url === '/register';
+}
+  
+
+  isThemenActive(): boolean {
+    return (
+      this.router.url === '/topics' ||
+      this.router.url.startsWith('/topic/') ||
+      this.router.url.startsWith('/cards/') ||
+      this.router.url.startsWith('/lernmodus/')
+    );
+  }
+
+  isQuizActive(): boolean {
+    return this.router.url === '/quiz';
+  }
+
   toggleAccount(): void {
+
     this.accountOpen = !this.accountOpen;
 
     if (!this.accountOpen) {
@@ -93,27 +144,22 @@ export class App implements OnInit, AfterViewInit {
       this.usernameMessage = '';
     }
 
-    if (this.accountOpen) {
-      this.changeDetectorRef.detectChanges();
-
-      requestAnimationFrame(() => {
-        this.renderIcons();
-      });
-    }
+    setTimeout(() => {
+      this.renderIcons();
+    }, 0);
   }
 
   openUsernameEditor(): void {
+
     this.usernameEditorOpen = !this.usernameEditorOpen;
 
     this.newUsername = this.username;
     this.usernameMessage = '';
     this.usernameSuccess = false;
 
-    this.changeDetectorRef.detectChanges();
-
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       this.renderIcons();
-    });
+    }, 0);
   }
 
   async changeUsername(): Promise<void> {
@@ -150,21 +196,25 @@ export class App implements OnInit, AfterViewInit {
       this.usernameMessage =
         'Der Name wurde erfolgreich geändert.';
 
-      this.changeDetectorRef.detectChanges();
-
     } catch (error: any) {
 
       this.usernameSuccess = false;
 
       if (error.code === 'auth/username-already-in-use') {
+
         this.usernameMessage =
           'Dieser Benutzername ist bereits registriert.';
+
       } else if (error.code === 'auth/invalid-username') {
+
         this.usernameMessage =
           'Dieser Benutzername ist nicht gültig.';
+
       } else {
+
         this.usernameMessage =
           'Der Name konnte nicht geändert werden.';
+
       }
     }
   }
@@ -193,45 +243,34 @@ export class App implements OnInit, AfterViewInit {
       console.error('DELETE ACCOUNT ERROR:', error);
 
       if (error.code === 'auth/requires-recent-login') {
+
         alert(
           'Bitte melde dich erneut an und versuche es danach noch einmal.'
         );
+
       } else {
+
         alert(
           'Das Konto konnte nicht gelöscht werden. Bitte versuche es erneut.'
         );
+
       }
     }
   }
 
   async logout(): Promise<void> {
+
     await this.authService.logout();
 
     this.accountOpen = false;
 
-    this.router.navigate(['/login']);
+    await this.router.navigate(['/login']);
   }
 
   get userInitial(): string {
+
     return this.username
       ? this.username.charAt(0).toUpperCase()
       : '?';
-  }
-
-  private renderIcons(): void {
-    createIcons({
-      icons: {
-        PlayingCards,
-        User,
-        Library,
-        History,
-        PlayingCardsFan,
-        LogOut,
-        GraduationCap,
-        Brain,
-        UserPen,
-        Trash2
-      }
-    });
   }
 }
