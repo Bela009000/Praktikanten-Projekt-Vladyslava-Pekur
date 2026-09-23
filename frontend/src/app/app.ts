@@ -74,6 +74,17 @@ export class App implements OnInit, AfterViewInit {
 
       });
   }
+  onDocumentClick(event: MouseEvent): void {
+  const target = event.target as HTMLElement;
+
+  const accountWrapper = target.closest('.account-wrapper');
+
+  if (!accountWrapper) {
+    this.accountOpen = false;
+    this.usernameEditorOpen = false;
+    this.usernameMessage = '';
+  }
+}
 
   ngAfterViewInit(): void {
     this.renderIcons();
@@ -107,8 +118,9 @@ export class App implements OnInit, AfterViewInit {
   }
 
   isLoginPage(): boolean {
-    return this.router.url === '/login';
-  }
+  return this.router.url === '/login' || this.router.url === '/register';
+}
+  
 
   isThemenActive(): boolean {
     return (

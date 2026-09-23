@@ -1,113 +1,118 @@
-<header class="topbar" *ngIf="!isLoginPage()">
+<div class="app-wrapper" (click)="onDocumentClick($event)">
 
-    <div class="logo">
-        <a routerLink="/home" class="logo-link">
-            <i data-lucide="playing-cards"></i>
-            <span>Lernkarten App</span>
-        </a>
-    </div>
+    <header class="topbar" *ngIf="!isLoginPage()">
 
-    <nav class="top-menu">
-
-        <div class="nav-links">
-
-            <span *ngIf="isLernkartenActive() || isThemenActive() || isQuizActive()" class="active-slider"
-                [class.slider-lernkarten]="isLernkartenActive()" [class.slider-themen]="isThemenActive()"
-                [class.slider-quiz]="isQuizActive()">
-            </span>
-
-            <a routerLink="/my-cards" [class.active]="isLernkartenActive()">
-                Lernkarten
+        <div class="logo">
+            <a routerLink="/home" class="logo-link">
+                <i data-lucide="playing-cards"></i>
+                <span>Lernkarten App</span>
             </a>
-
-            <a routerLink="/topics" [class.active]="isThemenActive()">
-                Themen
-            </a>
-
-            <a routerLink="/quiz" [class.active]="isQuizActive()">
-                Quiz
-            </a>
-
         </div>
 
-        <div class="account-wrapper">
+        <nav class="top-menu">
 
-            <button type="button" class="account-button" (click)="toggleAccount()">
+            <div class="nav-links">
 
-                <i data-lucide="user"></i>
-                <span>{{ username }}</span>
+                <span *ngIf="isLernkartenActive() || isThemenActive() || isQuizActive()" class="active-slider"
+                    [class.slider-lernkarten]="isLernkartenActive()" [class.slider-themen]="isThemenActive()"
+                    [class.slider-quiz]="isQuizActive()">
+                </span>
 
-            </button>
+                <a routerLink="/my-cards" [class.active]="isLernkartenActive()">
+                    Lernkarten
+                </a>
 
-            <div class="account-menu" *ngIf="accountOpen">
+                <a routerLink="/topics" [class.active]="isThemenActive()">
+                    Themen
+                </a>
 
-                <div class="account-header">
-
-                    <div class="account-avatar">
-                        {{ userInitial }}
-                    </div>
-
-                    <div>
-                        <strong>{{ username }}</strong>
-                        <span>Mein Account</span>
-                    </div>
-
-                </div>
-
-                <div class="account-divider"></div>
-
-                <button type="button" class="account-menu-button" (click)="openUsernameEditor()">
-
-                    <i data-lucide="user-pen"></i>
-                    <span>Namen ändern</span>
-
-                </button>
-
-                <div class="username-editor" *ngIf="usernameEditorOpen">
-
-                    <input id="newUsername" name="newUsername" type="text" [(ngModel)]="newUsername"
-                        placeholder="Neuer Name" maxlength="30" />
-
-                    <button type="button" class="save-username-button" (click)="changeUsername()">
-
-                        Speichern
-
-                    </button>
-
-                    <div class="username-message" *ngIf="usernameMessage" [class.success]="usernameSuccess">
-
-                        {{ usernameMessage }}
-
-                    </div>
-
-                </div>
-
-                <div class="account-divider"></div>
-
-                <button type="button" class="delete-account-button" (click)="deleteAccount()">
-
-                    <i data-lucide="trash-2"></i>
-                    <span>Konto löschen</span>
-
-                </button>
+                <a routerLink="/quiz" [class.active]="isQuizActive()">
+                    Quiz
+                </a>
 
             </div>
 
-        </div>
+            <!-- ВАЖНО: клик внутри этого блока не закрывает меню -->
+            <div class="account-wrapper" (click)="$event.stopPropagation()">
 
-        <button type="button" class="logout-button-top" (click)="logout()">
+                <button type="button" class="account-button" (click)="toggleAccount()">
 
-            <i data-lucide="log-out"></i>
-            <span>Ausloggen</span>
+                    <i data-lucide="user"></i>
+                    <span>{{ username }}</span>
 
-        </button>
+                </button>
 
-    </nav>
+                <div class="account-menu" *ngIf="accountOpen">
 
-</header>
+                    <div class="account-header">
 
-<div class="app-content" [class.login-content]="isLoginPage()">
+                        <div class="account-avatar">
+                            {{ userInitial }}
+                        </div>
 
-    <router-outlet></router-outlet>
+                        <div>
+                            <strong>{{ username }}</strong>
+                            <span>Mein Account</span>
+                        </div>
+
+                    </div>
+
+                    <div class="account-divider"></div>
+
+                    <button type="button" class="account-menu-button" (click)="openUsernameEditor()">
+
+                        <i data-lucide="user-pen"></i>
+                        <span>Namen ändern</span>
+
+                    </button>
+
+                    <div class="username-editor" *ngIf="usernameEditorOpen">
+
+                        <input id="newUsername" name="newUsername" type="text" [(ngModel)]="newUsername"
+                            placeholder="Neuer Name" maxlength="30" />
+
+                        <button type="button" class="save-username-button" (click)="changeUsername()">
+
+                            Speichern
+
+                        </button>
+
+                        <div class="username-message" *ngIf="usernameMessage" [class.success]="usernameSuccess">
+
+                            {{ usernameMessage }}
+
+                        </div>
+
+                    </div>
+
+                    <div class="account-divider"></div>
+
+                    <button type="button" class="delete-account-button" (click)="deleteAccount()">
+
+                        <i data-lucide="trash-2"></i>
+                        <span>Konto löschen</span>
+
+                    </button>
+
+                </div>
+
+            </div>
+
+            <button type="button" class="logout-button-top" (click)="logout()">
+
+                <i data-lucide="log-out"></i>
+                <span>Ausloggen</span>
+
+            </button>
+
+        </nav>
+
+    </header>
+
+    <div class="app-content" [class.login-content]="isLoginPage()">
+
+        <router-outlet></router-outlet>
+
+    </div>
 
 </div>

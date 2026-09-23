@@ -404,8 +404,14 @@ app-root {
   min-height: 100vh;
   overflow-x: hidden;
 }
+.app-content.login-content {
+  padding-top: 0;
+}
 
 @media (min-width: 901px) {
+  .app-content.login-content {
+    padding-top: 0;
+  }
   .nav-links {
     transform: none;
   }
