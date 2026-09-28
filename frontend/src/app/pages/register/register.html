@@ -47,7 +47,9 @@
                     Sonderzeichen</small>
             </div>
 
-            <button type="submit">Registrieren</button>
+            <button type="submit" [disabled]="isLoading">
+                {{ isLoading ? 'Bitte warten...' : 'Registrieren' }}
+            </button>
         </form>
         <p *ngIf="message" [style.color]="isSuccess ? 'green' : 'red'">{{ message }}</p>
         <p class="switch-link">Schon registriert? <a routerLink="/login">Zum Login</a></p>

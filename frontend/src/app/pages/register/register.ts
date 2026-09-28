@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -16,11 +16,13 @@ export class Register {
   password = '';
   message = '';
   isSuccess = false;
+  isLoading = false;
   showPassword = false;
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private changeDetectorRef: ChangeDetectorRef
   ) {}
 
   togglePassword() {
@@ -28,6 +30,10 @@ export class Register {
   }
 
   async onSubmit() {
+    if (this.isLoading) {
+      return;
+    }
+
     if (this.username.includes('@')) {
       this.message = 'Der Benutzername darf kein @-Zeichen enthalten.';
       this.isSuccess = false;
@@ -58,6 +64,10 @@ export class Register {
       return;
     }
 
+    this.isLoading = true;
+    this.message = '';
+    this.changeDetectorRef.detectChanges();
+
     try {
       await this.authService.register(
         this.username,
@@ -65,7 +75,15 @@ export class Register {
         this.password
       );
 
-      this.router.navigate(['/home']);
+      await this.authService.logout();
+
+      this.message = 'Erfolgreich registriert! Du wirst zum Login weitergeleitet...';
+      this.isSuccess = true;
+      this.changeDetectorRef.detectChanges();
+
+      setTimeout(() => {
+        this.router.navigate(['/login']);
+      }, 1500);
 
     } catch (error: any) {
       this.isSuccess = false;
@@ -79,6 +97,9 @@ export class Register {
       } else {
         this.message = 'Registrierung fehlgeschlagen. Bitte versuche es erneut.';
       }
+    } finally {
+      this.isLoading = false;
+      this.changeDetectorRef.detectChanges();
     }
   }
 }

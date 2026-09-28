@@ -50,6 +50,10 @@
   opacity: 0;
   animation: fadeInUp 0.5s ease forwards;
 }
+button[type='submit']:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 @keyframes fadeInUp {
   from {
