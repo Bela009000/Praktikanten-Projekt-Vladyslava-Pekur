@@ -461,6 +461,34 @@
 .selection-button:hover {
   background: #faf7ff;
 }
+.mode-switch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 4px;
+  background: #f5f3ff;
+  border-radius: 12px;
+}
+
+.mode-button {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.mode-button.active {
+  background: white;
+  color: #7c3aed;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+}
 
 @media (max-width: 700px) {
   .quiz-container {

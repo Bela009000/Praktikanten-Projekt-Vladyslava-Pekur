@@ -8,22 +8,25 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { onAuthStateChanged } from 'firebase/auth';
+import { filter } from 'rxjs/operators';
 
 import {
   createIcons,
-  PlayingCards,
+  ArrowLeft,
+  Camera,
   User,
   UserPen,
   Trash2,
   LogOut,
+  PlayingCards,
   PlayingCardsFan,
   GraduationCap,
-  Brain
+  Brain,
+  RefreshCw
 } from 'lucide';
 
 import { auth } from './firebase.config';
 import { AuthService } from './services/auth.service';
-import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -40,9 +43,13 @@ import { filter } from 'rxjs/operators';
 export class App implements OnInit, AfterViewInit {
 
   username = '';
+  photoURL = '';
+
   accountOpen = false;
   usernameEditorOpen = false;
+
   newUsername = '';
+
   usernameMessage = '';
   usernameSuccess = false;
 
@@ -52,65 +59,66 @@ export class App implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        this.username = '';
+        this.photoURL = '';
+        return;
+      }
 
-    onAuthStateChanged(auth, (user) => {
-      this.username = user?.displayName || '';
+      this.username = user.displayName || '';
+
+      try {
+        const data = await this.authService.getUserData();
+        this.photoURL = data?.photoURL || '';
+      } catch (error) {
+        console.error('USER DATA ERROR:', error);
+        this.photoURL = '';
+      }
     });
 
-    /*
-     * Icons are rendered after every route change.
-     * This is important because the content of router-outlet
-     * changes after navigation.
-     */
     this.router.events
       .pipe(
         filter(event => event instanceof NavigationEnd)
       )
       .subscribe(() => {
-
-        setTimeout(() => {
-          this.renderIcons();
-        }, 0);
-
+        this.refreshIcons();
       });
   }
-  onDocumentClick(event: MouseEvent): void {
-  const target = event.target as HTMLElement;
-
-  const accountWrapper = target.closest('.account-wrapper');
-
-  if (!accountWrapper) {
-    this.accountOpen = false;
-    this.usernameEditorOpen = false;
-    this.usernameMessage = '';
-  }
-}
 
   ngAfterViewInit(): void {
-    this.renderIcons();
+    this.refreshIcons();
   }
 
-  /**
-   * Central place for all Lucide icons used in the application.
-   */
-  private renderIcons(): void {
+  private refreshIcons(): void {
+    setTimeout(() => {
+      createIcons({
+        icons: {
+          ArrowLeft,
+          Camera,
+          User,
+          UserPen,
+          Trash2,
+          LogOut,
+          PlayingCards,
+          PlayingCardsFan,
+          GraduationCap,
+          Brain,
+              RefreshCw
+        }
+      });
+    }, 0);
+  }
 
-    createIcons({
-      icons: {
-        // Topbar
-        PlayingCards,
-        User,
-        UserPen,
-        Trash2,
-        LogOut,
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    const accountWrapper = target.closest('.account-wrapper');
 
-        // Home
-        PlayingCardsFan,
-        GraduationCap,
-        Brain
-      }
-    });
-
+    if (!accountWrapper) {
+      this.accountOpen = false;
+      this.usernameEditorOpen = false;
+      this.usernameMessage = '';
+    }
   }
 
   isLernkartenActive(): boolean {
@@ -118,9 +126,11 @@ export class App implements OnInit, AfterViewInit {
   }
 
   isLoginPage(): boolean {
-  return this.router.url === '/login' || this.router.url === '/register';
-}
-  
+    return (
+      this.router.url === '/login' ||
+      this.router.url === '/register'
+    );
+  }
 
   isThemenActive(): boolean {
     return (
@@ -136,7 +146,6 @@ export class App implements OnInit, AfterViewInit {
   }
 
   toggleAccount(): void {
-
     this.accountOpen = !this.accountOpen;
 
     if (!this.accountOpen) {
@@ -144,85 +153,71 @@ export class App implements OnInit, AfterViewInit {
       this.usernameMessage = '';
     }
 
-    setTimeout(() => {
-      this.renderIcons();
-    }, 0);
+    this.refreshIcons();
   }
 
   openUsernameEditor(): void {
-
     this.usernameEditorOpen = !this.usernameEditorOpen;
-
     this.newUsername = this.username;
     this.usernameMessage = '';
     this.usernameSuccess = false;
 
-    setTimeout(() => {
-      this.renderIcons();
-    }, 0);
+    this.refreshIcons();
   }
 
   async changeUsername(): Promise<void> {
-
     const username = this.newUsername.trim();
 
-    if (username === '') {
-      this.usernameSuccess = false;
+    this.usernameMessage = '';
+    this.usernameSuccess = false;
+
+    if (!username) {
       this.usernameMessage = 'Bitte gib einen Namen ein.';
       return;
     }
 
     if (username.includes('@')) {
-      this.usernameSuccess = false;
       this.usernameMessage =
         'Der Benutzername darf kein @-Zeichen enthalten.';
       return;
     }
 
     if (username === this.username) {
-      this.usernameSuccess = false;
       this.usernameMessage =
         'Du verwendest bereits diesen Namen.';
       return;
     }
 
     try {
-
       await this.authService.changeUsername(username);
 
       this.username = username;
       this.newUsername = username;
       this.usernameSuccess = true;
+
       this.usernameMessage =
         'Der Name wurde erfolgreich geändert.';
 
     } catch (error: any) {
-
       this.usernameSuccess = false;
 
-      if (error.code === 'auth/username-already-in-use') {
-
+      if (error?.code === 'auth/username-already-in-use') {
         this.usernameMessage =
           'Dieser Benutzername ist bereits registriert.';
-
-      } else if (error.code === 'auth/invalid-username') {
-
+      } else if (error?.code === 'auth/invalid-username') {
         this.usernameMessage =
           'Dieser Benutzername ist nicht gültig.';
-
       } else {
-
         this.usernameMessage =
           'Der Name konnte nicht geändert werden.';
-
       }
     }
   }
 
   async deleteAccount(): Promise<void> {
-
     const confirmed = confirm(
-      'Möchtest du dein Konto wirklich löschen? Alle deine Themen, Lernkarten und Quiz-Daten werden gelöscht.'
+      'Möchtest du dein Konto wirklich löschen? ' +
+      'Alle deine Themen, Lernkarten und Quiz-Daten werden gelöscht.'
     );
 
     if (!confirmed) {
@@ -230,45 +225,42 @@ export class App implements OnInit, AfterViewInit {
     }
 
     try {
-
       await this.authService.deleteAccount();
 
+      this.username = '';
+      this.photoURL = '';
       this.accountOpen = false;
       this.usernameEditorOpen = false;
 
       await this.router.navigate(['/login']);
 
     } catch (error: any) {
-
       console.error('DELETE ACCOUNT ERROR:', error);
 
-      if (error.code === 'auth/requires-recent-login') {
-
+      if (error?.code === 'auth/requires-recent-login') {
         alert(
           'Bitte melde dich erneut an und versuche es danach noch einmal.'
         );
-
       } else {
-
         alert(
           'Das Konto konnte nicht gelöscht werden. Bitte versuche es erneut.'
         );
-
       }
     }
   }
 
   async logout(): Promise<void> {
-
     await this.authService.logout();
 
+    this.username = '';
+    this.photoURL = '';
     this.accountOpen = false;
+    this.usernameEditorOpen = false;
 
     await this.router.navigate(['/login']);
   }
 
   get userInitial(): string {
-
     return this.username
       ? this.username.charAt(0).toUpperCase()
       : '?';

@@ -1,0 +1,272 @@
+.account-page {
+  min-height: 100%;
+  padding: 32px 40px 60px;
+  box-sizing: border-box;
+}
+
+.account-page-header {
+  max-width: 900px;
+  margin: 0 auto 28px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.account-page-header h1 {
+  margin: 0 auto;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.back-button {
+  position: absolute;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.back-button i {
+  width: 18px;
+  height: 18px;
+}
+
+.account-card {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-sizing: border-box;
+}
+
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 38px;
+}
+
+.large-avatar {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #9b63f5;
+  color: white;
+  font-size: 52px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.large-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.large-avatar span {
+  font-size: 52px;
+  font-weight: 700;
+}
+
+.avatar-section h2 {
+  margin: 16px 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.avatar-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.primary-button,
+.secondary-button,
+.delete-avatar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.primary-button {
+  border: none;
+  background: #8d55e8;
+  color: white;
+}
+
+.primary-button:hover {
+  background: #7842d2;
+}
+
+.secondary-button {
+  border: none;
+  background: #f1eafa;
+  color: #6835b8;
+  margin-top: 18px;
+}
+
+.secondary-button:hover {
+  background: #e8def8;
+}
+
+.delete-avatar-button {
+  border: 1px solid #e5dcdc;
+  background: #fff;
+  color: #b42318;
+  margin-top: 18px;
+}
+
+.delete-avatar-button:hover {
+  background: #fff1f0;
+  border-color: #efb4ae;
+}
+
+.secondary-button i,
+.delete-avatar-button i {
+  width: 17px;
+  height: 17px;
+}
+
+.avatar-paste-field {
+  width: 100%;
+  max-width: 320px;
+  min-height: 70px;
+  margin-top: 15px;
+  border: 2px dashed #d8c8f5;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: text;
+  color: #7138d9;
+  background: #faf7ff;
+  outline: none;
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.avatar-paste-field:hover {
+  border-color: #b89ae9;
+  background: #f8f3ff;
+}
+
+.avatar-paste-field:focus {
+  border-color: #7c3aed;
+  background: #f5efff;
+}
+
+.avatar-paste-field span {
+  font-weight: 600;
+}
+
+.avatar-paste-field small {
+  color: #8d7aa8;
+}
+
+.form-message {
+  margin-top: 40px;
+  margin-bottom: 15px;
+  font-size: 14px;
+  color: #6835b8;
+  text-align: center;
+}
+
+.account-section {
+  margin-top: 34px;
+}
+
+.account-section h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.section-divider {
+  height: 1px;
+  background: #e8e1f5;
+  margin: 16px 0 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-group input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 15px;
+  border: 1px solid #ddd5ed;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #8d55e8;
+}
+
+.section-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 700px) {
+  .account-page {
+    padding: 20px;
+  }
+
+  .account-card {
+    padding: 24px;
+  }
+
+  .account-page-header h1 {
+    font-size: 22px;
+  }
+
+  .avatar-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .secondary-button,
+  .delete-avatar-button {
+    width: 100%;
+    max-width: 220px;
+  }
+}

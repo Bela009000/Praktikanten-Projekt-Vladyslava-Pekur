@@ -32,13 +32,23 @@
 
             </div>
 
-            <!-- ВАЖНО: клик внутри этого блока не закрывает меню -->
             <div class="account-wrapper" (click)="$event.stopPropagation()">
 
                 <button type="button" class="account-button" (click)="toggleAccount()">
 
-                    <i data-lucide="user"></i>
-                    <span>{{ username }}</span>
+                    <div class="topbar-avatar">
+
+                        <img *ngIf="photoURL" [src]="photoURL" alt="Avatar">
+
+                        <span *ngIf="!photoURL">
+                            {{ userInitial }}
+                        </span>
+
+                    </div>
+
+                    <span class="topbar-username">
+                        {{ username }}
+                    </span>
 
                 </button>
 
@@ -46,51 +56,52 @@
 
                     <div class="account-header">
 
-                        <div class="account-avatar">
-                            {{ userInitial }}
+                        <div class="account-avatar-small">
+
+                            <img *ngIf="photoURL" [src]="photoURL" alt="Avatar">
+
+                            <span *ngIf="!photoURL">
+                                {{ userInitial }}
+                            </span>
+
                         </div>
 
-                        <div>
-                            <strong>{{ username }}</strong>
-                            <span>Mein Account</span>
+                        <div class="account-header-info">
+
+                            <strong>
+                                {{ username }}
+                            </strong>
+
+                            <span>
+                                Mein Account
+                            </span>
+
                         </div>
 
                     </div>
 
                     <div class="account-divider"></div>
 
-                    <button type="button" class="account-menu-button" (click)="openUsernameEditor()">
+                    <button type="button" class="account-menu-button" routerLink="/account"
+                        (click)="accountOpen = false">
 
-                        <i data-lucide="user-pen"></i>
-                        <span>Namen ändern</span>
+                        <i data-lucide="user"></i>
+
+                        <span>
+                            Mein Account
+                        </span>
 
                     </button>
-
-                    <div class="username-editor" *ngIf="usernameEditorOpen">
-
-                        <input id="newUsername" name="newUsername" type="text" [(ngModel)]="newUsername"
-                            placeholder="Neuer Name" maxlength="30" />
-
-                        <button type="button" class="save-username-button" (click)="changeUsername()">
-
-                            Speichern
-
-                        </button>
-
-                        <div class="username-message" *ngIf="usernameMessage" [class.success]="usernameSuccess">
-
-                            {{ usernameMessage }}
-
-                        </div>
-
-                    </div>
 
                     <div class="account-divider"></div>
 
                     <button type="button" class="delete-account-button" (click)="deleteAccount()">
 
                         <i data-lucide="trash-2"></i>
-                        <span>Konto löschen</span>
+
+                        <span>
+                            Konto löschen
+                        </span>
 
                     </button>
 
@@ -101,7 +112,10 @@
             <button type="button" class="logout-button-top" (click)="logout()">
 
                 <i data-lucide="log-out"></i>
-                <span>Ausloggen</span>
+
+                <span>
+                    Ausloggen
+                </span>
 
             </button>
 

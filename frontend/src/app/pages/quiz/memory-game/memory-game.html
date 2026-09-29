@@ -1,0 +1,65 @@
+<div class="memory-wrapper">
+
+    <div class="memory-header">
+        <div>
+            <span class="memory-topic">{{ topicName }}</span>
+            <h2>Memory</h2>
+        </div>
+
+        <div class="memory-stats">
+            <div class="stat">
+                <span class="stat-label">Züge</span>
+                <span class="stat-value">{{ moves }}</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Zeit</span>
+                <span class="stat-value">{{ formattedTime }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="memory-grid" [style.gridTemplateColumns]="'repeat(' + gridColumns + ', 1fr)'" *ngIf="!isFinished">
+
+        <div class="memory-tile" *ngFor="let tile of tiles" [class.flipped]="tile.isFlipped || tile.isMatched"
+            [class.matched]="tile.isMatched" (click)="selectTile(tile)">
+
+            <div class="memory-tile-inner">
+                <div class="memory-tile-front">?</div>
+                <div class="memory-tile-back">{{ tile.text }}</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="memory-finish" *ngIf="isFinished">
+        <div class="finish-icon">🎉</div>
+        <h3>Geschafft!</h3>
+        <p>Du hast alle Paare gefunden.</p>
+
+        <div class="finish-stats">
+            <div class="finish-stat">
+                <span class="finish-stat-value">{{ moves }}</span>
+                <span class="finish-stat-label">Züge</span>
+            </div>
+            <div class="finish-stat">
+                <span class="finish-stat-value">{{ formattedTime }}</span>
+                <span class="finish-stat-label">Zeit</span>
+            </div>
+        </div>
+
+        <div class="finish-actions">
+            <button type="button" class="restart-button" (click)="playAgain()">
+                Nochmal spielen
+            </button>
+            <button type="button" class="selection-button" (click)="goBack()">
+                Anderes Thema
+            </button>
+        </div>
+    </div>
+
+    <button type="button" class="memory-back-link" (click)="goBack()" *ngIf="!isFinished">
+        ← Zurück zur Auswahl
+    </button>
+
+</div>
