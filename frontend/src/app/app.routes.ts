@@ -10,6 +10,7 @@ import { Lernmodus } from './pages/lernmodus/lernmodus';
 import { MyCards } from './pages/my-cards/my-cards';
 import { authGuard } from './guards/auth-guard';
 import { Quiz } from './pages/quiz/quiz';
+import { Account } from './pages/account/account';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -30,5 +31,7 @@ export const routes: Routes = [
 
   { path: 'my-cards', component: MyCards, canActivate: [authGuard] },
   
-  { path: 'quiz', component: Quiz, canActivate: [authGuard] }
+  { path: 'quiz', component: Quiz, canActivate: [authGuard] },
+  
+  { path: 'account', component: Account, canActivate: [authGuard] }
 ];

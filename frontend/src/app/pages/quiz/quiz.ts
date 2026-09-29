@@ -3,17 +3,21 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { DataService, Topic, Card } from '../../services/data.service';
+import { MemoryGame } from './memory-game/memory-game';
 
 @Component({
   selector: 'app-quiz',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, MemoryGame],
   templateUrl: './quiz.html',
   styleUrl: './quiz.css'
 })
 export class Quiz {
 
+  mode: 'quiz' | 'memory' = 'quiz';
+
   topics: Topic[] = [];
   words: Card[] = [];
+  memoryCards: Card[] = [];
 
   selectedTopicId: string | null = null;
   selectedTopicName = '';
@@ -36,6 +40,11 @@ export class Quiz {
 
   async ngOnInit() {
     await this.loadTopics();
+  }
+
+  setMode(newMode: 'quiz' | 'memory') {
+    this.mode = newMode;
+    this.backToSelection();
   }
 
   private async loadTopics() {
@@ -64,6 +73,35 @@ export class Quiz {
 
   async startQuiz() {
     if (this.selectedTopicId === null) {
+      return;
+    }
+
+    if (this.mode === 'memory') {
+      try {
+        const cards = await this.dataService.getCards(
+          this.selectedTopicId
+        );
+
+        if (cards.length === 0) {
+          return;
+        }
+
+        this.memoryCards = cards;
+
+        const selectedTopic = this.topics.find(
+          topic => topic.id === this.selectedTopicId
+        );
+
+        this.selectedTopicName = selectedTopic?.name || '';
+        this.isStarted = true;
+        this.isFinished = false;
+
+        this.changeDetectorRef.detectChanges();
+
+      } catch (error) {
+        console.error('MEMORY START ERROR:', error);
+      }
+
       return;
     }
 
@@ -125,30 +163,30 @@ export class Quiz {
   }
 
   async nextQuestion() {
-  if (this.answerIsCorrect) {
-    this.correctAnswers++;
-  }
+    if (this.answerIsCorrect) {
+      this.correctAnswers++;
+    }
 
-  this.userAnswer = '';
-  this.showAnswer = false;
-  this.answerIsCorrect = false;
+    this.userAnswer = '';
+    this.showAnswer = false;
+    this.answerIsCorrect = false;
 
-  if (this.currentIndex < this.words.length - 1) {
-    this.currentIndex++;
-  } else {
-    this.isFinished = true;
+    if (this.currentIndex < this.words.length - 1) {
+      this.currentIndex++;
+    } else {
+      this.isFinished = true;
 
-    try {
-      await this.dataService.addQuizAttempt(
-        this.selectedTopicId!,
-        this.correctAnswers,
-        this.words.length
-      );
-    } catch (error) {
-      console.error('QUIZ SAVE ERROR:', error);
+      try {
+        await this.dataService.addQuizAttempt(
+          this.selectedTopicId!,
+          this.correctAnswers,
+          this.words.length
+        );
+      } catch (error) {
+        console.error('QUIZ SAVE ERROR:', error);
+      }
     }
   }
-}
 
   restartQuiz() {
     this.words = this.shuffle([...this.words]);
@@ -170,6 +208,7 @@ export class Quiz {
     this.isFinished = false;
 
     this.words = [];
+    this.memoryCards = [];
 
     this.currentIndex = 0;
     this.correctAnswers = 0;

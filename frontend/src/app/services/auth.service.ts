@@ -4,13 +4,16 @@ import {
   signOut,
   updateProfile,
   onAuthStateChanged,
-  deleteUser
+  deleteUser,
+  updatePassword,
+  reload
 } from 'firebase/auth';
 
 import type { User } from 'firebase/auth';
 
 import {
   doc,
+  getDoc,
   setDoc,
   collection,
   query,
@@ -21,6 +24,7 @@ import {
 } from 'firebase/firestore';
 
 import { Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 
 import { auth, db } from '../firebase.config';
 
@@ -31,38 +35,230 @@ export class AuthService {
 
   currentUser: User | null = null;
 
+  private photoURLSubject =
+    new BehaviorSubject<string>('');
+
+  photoURL$ =
+    this.photoURLSubject.asObservable();
+
+  private userDataSubject =
+    new BehaviorSubject<any>(null);
+
+  userData$ =
+    this.userDataSubject.asObservable();
+
+  private userDataCache: any = null;
+
+  private authReady: Promise<User | null>;
+
   constructor() {
-    onAuthStateChanged(auth, user => {
-      this.currentUser = user;
-    });
+
+    this.authReady =
+      new Promise(resolve => {
+
+        const unsubscribe =
+          onAuthStateChanged(
+            auth,
+            async user => {
+
+              this.currentUser = user;
+
+              if (!user) {
+
+                this.userDataCache = null;
+
+                this.userDataSubject.next(null);
+                this.photoURLSubject.next('');
+
+                unsubscribe();
+
+                resolve(null);
+
+                return;
+              }
+
+              try {
+
+                const data =
+                  await this.loadUserDataFromFirestore(
+                    user
+                  );
+
+                this.userDataCache =
+                  data;
+
+                this.userDataSubject.next(
+                  data
+                );
+
+                this.photoURLSubject.next(
+                  data?.photoURL || ''
+                );
+
+              } catch (error) {
+
+                console.error(
+                  'AUTH USER DATA ERROR:',
+                  error
+                );
+
+                this.userDataCache = null;
+
+                this.userDataSubject.next(null);
+                this.photoURLSubject.next('');
+              }
+
+              unsubscribe();
+
+              resolve(user);
+            }
+          );
+      });
   }
 
   async waitForAuth(): Promise<User | null> {
-    await auth.authStateReady();
 
-    this.currentUser = auth.currentUser;
+    if (this.currentUser) {
+      return this.currentUser;
+    }
 
-    return this.currentUser;
+    return this.authReady;
+  }
+
+  private async loadUserDataFromFirestore(
+    user: User
+  ): Promise<any> {
+
+    const userRef =
+      doc(
+        db,
+        'users',
+        user.uid
+      );
+
+    const snapshot =
+      await getDoc(userRef);
+
+    if (!snapshot.exists()) {
+      return null;
+    }
+
+    return snapshot.data();
+  }
+
+  async getUserData(): Promise<any> {
+
+    const user =
+      await this.waitForAuth();
+
+    if (!user) {
+      return null;
+    }
+
+    if (this.userDataCache) {
+      return this.userDataCache;
+    }
+
+    const data =
+      await this.loadUserDataFromFirestore(
+        user
+      );
+
+    this.userDataCache =
+      data;
+
+    this.userDataSubject.next(
+      data
+    );
+
+    this.photoURLSubject.next(
+      data?.photoURL || ''
+    );
+
+    return data;
+  }
+
+  async refreshUserData(): Promise<{
+    user: User;
+    data: any;
+  } | null> {
+
+    let user =
+      await this.waitForAuth();
+
+    if (!user) {
+
+      this.currentUser = null;
+      this.userDataCache = null;
+
+      this.userDataSubject.next(null);
+      this.photoURLSubject.next('');
+
+      return null;
+    }
+
+    await reload(user);
+
+    user =
+      auth.currentUser || user;
+
+    this.currentUser =
+      user;
+
+    const data =
+      await this.loadUserDataFromFirestore(
+        user
+      );
+
+    this.userDataCache =
+      data;
+
+    this.userDataSubject.next(
+      data
+    );
+
+    this.photoURLSubject.next(
+      data?.photoURL || ''
+    );
+
+    return {
+      user,
+      data
+    };
   }
 
   async register(
     username: string,
     email: string,
     password: string
-  ) {
-    const usersRef = collection(db, 'users');
+  ): Promise<User> {
 
-    const usernameQuery = query(
-      usersRef,
-      where('username', '==', username)
-    );
+    const usersRef =
+      collection(
+        db,
+        'users'
+      );
+
+    const usernameQuery =
+      query(
+        usersRef,
+        where(
+          'username',
+          '==',
+          username
+        )
+      );
 
     const usernameSnapshot =
-      await getDocs(usernameQuery);
+      await getDocs(
+        usernameQuery
+      );
 
     if (!usernameSnapshot.empty) {
+
       throw {
-        code: 'auth/username-already-in-use'
+        code:
+          'auth/username-already-in-use'
       };
     }
 
@@ -73,21 +269,42 @@ export class AuthService {
         password
       );
 
-    const user = userCredential.user;
+    const user =
+      userCredential.user;
 
-    await updateProfile(user, {
-      displayName: username
-    });
-
-    await setDoc(
-      doc(db, 'users', user.uid),
+    await updateProfile(
+      user,
       {
-        username,
-        email
+        displayName: username
       }
     );
 
-    this.currentUser = user;
+    const userData = {
+      username,
+      email,
+      photoURL: ''
+    };
+
+    await setDoc(
+      doc(
+        db,
+        'users',
+        user.uid
+      ),
+      userData
+    );
+
+    this.currentUser =
+      user;
+
+    this.userDataCache =
+      userData;
+
+    this.userDataSubject.next(
+      userData
+    );
+
+    this.photoURLSubject.next('');
 
     return user;
   }
@@ -95,26 +312,45 @@ export class AuthService {
   async login(
     usernameOrEmail: string,
     password: string
-  ) {
-    let email = usernameOrEmail;
+  ): Promise<User> {
 
-    if (!usernameOrEmail.includes('@')) {
-      const usersRef = collection(db, 'users');
+    let email =
+      usernameOrEmail;
 
-      const q = query(
-        usersRef,
-        where('username', '==', usernameOrEmail)
-      );
+    if (
+      !usernameOrEmail.includes('@')
+    ) {
 
-      const snapshot = await getDocs(q);
+      const usersRef =
+        collection(
+          db,
+          'users'
+        );
+
+      const q =
+        query(
+          usersRef,
+          where(
+            'username',
+            '==',
+            usernameOrEmail
+          )
+        );
+
+      const snapshot =
+        await getDocs(q);
 
       if (snapshot.empty) {
+
         throw {
-          code: 'auth/user-not-found'
+          code:
+            'auth/user-not-found'
         };
       }
 
-      email = snapshot.docs[0].data()['email'];
+      email =
+        snapshot.docs[0]
+          .data()['email'];
     }
 
     const userCredential =
@@ -124,111 +360,468 @@ export class AuthService {
         password
       );
 
-    this.currentUser = userCredential.user;
+    const user =
+      userCredential.user;
 
-    return userCredential.user;
+    this.currentUser =
+      user;
+
+    const data =
+      await this.loadUserDataFromFirestore(
+        user
+      );
+
+    this.userDataCache =
+      data;
+
+    this.userDataSubject.next(
+      data
+    );
+
+    this.photoURLSubject.next(
+      data?.photoURL || ''
+    );
+
+    return user;
   }
 
   async changeUsername(
     newUsername: string
-  ) {
-    const user = await this.waitForAuth();
+  ): Promise<User> {
+
+    const user =
+      await this.waitForAuth();
 
     if (!user) {
-      throw new Error('Kein Benutzer angemeldet');
+      throw new Error(
+        'Kein Benutzer angemeldet'
+      );
     }
 
-    const username = newUsername.trim();
+    const username =
+      newUsername.trim();
 
-    if (username === '') {
+    if (
+      !username ||
+      username.includes('@')
+    ) {
+
       throw {
-        code: 'auth/invalid-username'
+        code:
+          'auth/invalid-username'
       };
     }
 
-    if (username.includes('@')) {
-      throw {
-        code: 'auth/invalid-username'
-      };
-    }
+    const usersRef =
+      collection(
+        db,
+        'users'
+      );
 
-    const usersRef = collection(db, 'users');
-
-    const usernameQuery = query(
-      usersRef,
-      where('username', '==', username)
-    );
+    const usernameQuery =
+      query(
+        usersRef,
+        where(
+          'username',
+          '==',
+          username
+        )
+      );
 
     const usernameSnapshot =
-      await getDocs(usernameQuery);
+      await getDocs(
+        usernameQuery
+      );
 
     const usernameIsUsedByAnotherUser =
       usernameSnapshot.docs.some(
-        userDoc => userDoc.id !== user.uid
+        userDoc =>
+          userDoc.id !== user.uid
       );
 
-    if (usernameIsUsedByAnotherUser) {
+    if (
+      usernameIsUsedByAnotherUser
+    ) {
+
       throw {
-        code: 'auth/username-already-in-use'
+        code:
+          'auth/username-already-in-use'
       };
     }
 
-    await updateProfile(user, {
-      displayName: username
-    });
+    await updateProfile(
+      user,
+      {
+        displayName: username
+      }
+    );
 
     await updateDoc(
-      doc(db, 'users', user.uid),
+      doc(
+        db,
+        'users',
+        user.uid
+      ),
       {
         username
       }
     );
 
-    this.currentUser = auth.currentUser;
+    this.userDataCache = {
+      ...(this.userDataCache || {}),
+      username
+    };
+
+    this.currentUser =
+      auth.currentUser;
+
+    this.userDataSubject.next(
+      this.userDataCache
+    );
 
     return user;
   }
 
-  async logout() {
-    await signOut(auth);
+  async changePassword(
+    newPassword: string
+  ): Promise<void> {
 
-    this.currentUser = null;
-  }
-
-  async deleteAccount() {
-    const user = await this.waitForAuth();
+    const user =
+      await this.waitForAuth();
 
     if (!user) {
-      throw new Error('Kein Benutzer angemeldet');
+      throw new Error(
+        'Kein Benutzer angemeldet'
+      );
     }
 
-    const userId = user.uid;
+    if (
+      newPassword.length < 6
+    ) {
 
-    const topicsRef = collection(db, 'topics');
+      throw {
+        code:
+          'auth/weak-password'
+      };
+    }
 
-    const topicsQuery = query(
-      topicsRef,
-      where('userId', '==', userId)
+    await updatePassword(
+      user,
+      newPassword
+    );
+  }
+
+  async changeAvatarBase64(
+    file: File
+  ): Promise<string> {
+
+    const user =
+      await this.waitForAuth();
+
+    if (!user) {
+      throw new Error(
+        'Kein Benutzer angemeldet'
+      );
+    }
+
+    if (
+      !file.type.startsWith('image/')
+    ) {
+
+      throw {
+        code:
+          'avatar/invalid-file'
+      };
+    }
+
+    const base64 =
+      await this.compressImage(file);
+
+    if (
+      base64.length > 300000
+    ) {
+
+      throw {
+        code:
+          'avatar-too-large'
+      };
+    }
+
+    await setDoc(
+      doc(
+        db,
+        'users',
+        user.uid
+      ),
+      {
+        photoURL: base64
+      },
+      {
+        merge: true
+      }
     );
 
-    const topicsSnapshot =
-      await getDocs(topicsQuery);
+    this.userDataCache = {
+      ...(this.userDataCache || {}),
+      photoURL: base64
+    };
 
-    for (const topic of topicsSnapshot.docs) {
-      const cardsSnapshot = await getDocs(
-        collection(
-          db,
-          'topics',
-          topic.id,
-          'cards'
+    this.userDataSubject.next(
+      this.userDataCache
+    );
+
+    this.photoURLSubject.next(
+      base64
+    );
+
+    return base64;
+  }
+
+  async deleteAvatar(): Promise<void> {
+
+    const user =
+      await this.waitForAuth();
+
+    if (!user) {
+      throw new Error(
+        'Kein Benutzer angemeldet'
+      );
+    }
+
+    await setDoc(
+      doc(
+        db,
+        'users',
+        user.uid
+      ),
+      {
+        photoURL: ''
+      },
+      {
+        merge: true
+      }
+    );
+
+    this.userDataCache = {
+      ...(this.userDataCache || {}),
+      photoURL: ''
+    };
+
+    this.userDataSubject.next(
+      this.userDataCache
+    );
+
+    this.photoURLSubject.next('');
+  }
+
+  private compressImage(
+    file: File
+  ): Promise<string> {
+
+    return new Promise(
+      (resolve, reject) => {
+
+        const reader =
+          new FileReader();
+
+        reader.onload = () => {
+
+          const image =
+            new Image();
+
+          image.onload = () => {
+
+            const maxSize =
+              512;
+
+            let width =
+              image.width;
+
+            let height =
+              image.height;
+
+            if (
+              width > height
+            ) {
+
+              if (
+                width > maxSize
+              ) {
+
+                height =
+                  Math.round(
+                    height *
+                    maxSize /
+                    width
+                  );
+
+                width =
+                  maxSize;
+              }
+
+            } else {
+
+              if (
+                height > maxSize
+              ) {
+
+                width =
+                  Math.round(
+                    width *
+                    maxSize /
+                    height
+                  );
+
+                height =
+                  maxSize;
+              }
+            }
+
+            const canvas =
+              document.createElement(
+                'canvas'
+              );
+
+            canvas.width =
+              width;
+
+            canvas.height =
+              height;
+
+            const context =
+              canvas.getContext('2d');
+
+            if (!context) {
+
+              reject(
+                new Error(
+                  'Canvas konnte nicht erstellt werden'
+                )
+              );
+
+              return;
+            }
+
+            context.drawImage(
+              image,
+              0,
+              0,
+              width,
+              height
+            );
+
+            const result =
+              canvas.toDataURL(
+                'image/jpeg',
+                0.7
+              );
+
+            resolve(result);
+          };
+
+          image.onerror = () => {
+
+            reject(
+              new Error(
+                'Bild konnte nicht geladen werden'
+              )
+            );
+          };
+
+          image.src =
+            reader.result as string;
+        };
+
+        reader.onerror = () => {
+
+          reject(
+            new Error(
+              'Bild konnte nicht gelesen werden'
+            )
+          );
+        };
+
+        reader.readAsDataURL(file);
+      }
+    );
+  }
+
+  async logout(): Promise<void> {
+
+    await signOut(auth);
+
+    this.currentUser =
+      null;
+
+    this.userDataCache =
+      null;
+
+    this.userDataSubject.next(null);
+    this.photoURLSubject.next('');
+  }
+
+  async deleteAccount(): Promise<void> {
+
+    const user =
+      await this.waitForAuth();
+
+    if (!user) {
+      throw new Error(
+        'Kein Benutzer angemeldet'
+      );
+    }
+
+    const userId =
+      user.uid;
+
+    const topicsRef =
+      collection(
+        db,
+        'topics'
+      );
+
+    const topicsQuery =
+      query(
+        topicsRef,
+        where(
+          'userId',
+          '==',
+          userId
         )
       );
 
-      for (const card of cardsSnapshot.docs) {
-        await deleteDoc(card.ref);
+    const topicsSnapshot =
+      await getDocs(
+        topicsQuery
+      );
+
+    for (
+      const topic of
+      topicsSnapshot.docs
+    ) {
+
+      const cardsSnapshot =
+        await getDocs(
+          collection(
+            db,
+            'topics',
+            topic.id,
+            'cards'
+          )
+        );
+
+      for (
+        const card of
+        cardsSnapshot.docs
+      ) {
+        await deleteDoc(
+          card.ref
+        );
       }
 
-      await deleteDoc(topic.ref);
+      await deleteDoc(
+        topic.ref
+      );
     }
 
     const quizAttemptsSnapshot =
@@ -241,20 +834,40 @@ export class AuthService {
         )
       );
 
-    for (const attempt of quizAttemptsSnapshot.docs) {
-      await deleteDoc(attempt.ref);
+    for (
+      const attempt of
+      quizAttemptsSnapshot.docs
+    ) {
+      await deleteDoc(
+        attempt.ref
+      );
     }
 
     await deleteDoc(
-      doc(db, 'users', userId)
+      doc(
+        db,
+        'users',
+        userId
+      )
     );
 
     await deleteUser(user);
 
-    this.currentUser = null;
+    this.currentUser =
+      null;
+
+    this.userDataCache =
+      null;
+
+    this.userDataSubject.next(null);
+    this.photoURLSubject.next('');
   }
 
   getCurrentUsername(): string {
-    return this.currentUser?.displayName || '';
+
+    return (
+      this.currentUser?.displayName ||
+      ''
+    );
   }
 }

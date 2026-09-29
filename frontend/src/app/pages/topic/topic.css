@@ -217,6 +217,10 @@
 }
 
 .learning-button {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   display: inline-block;
   padding: 13px 24px;
   background: #7c3aed;
@@ -226,10 +230,16 @@
   font-size: 14px;
   font-weight: 600;
   box-shadow: 0 6px 18px rgba(124, 58, 237, 0.2);
+  z-index: 1000;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .learning-button:hover {
   background: #6d28d9;
+  transform: translateX(-50%) translateY(-2px);
 }
 
 @media (max-width: 700px) {

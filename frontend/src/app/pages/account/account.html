@@ -1,0 +1,153 @@
+<div class="account-page" (paste)="pasteAvatar($event)">
+
+    <div class="account-page-header">
+
+        <button type="button" class="back-button" (click)="goBack()">
+
+            <i data-lucide="arrow-left"></i>
+
+            <span>Zurück</span>
+
+        </button>
+
+        <h1>Mein Account</h1>
+
+    </div>
+
+
+    <div class="account-card">
+
+        <section class="avatar-section">
+
+            <div class="large-avatar">
+                <img *ngIf="photoURL" [src]="photoURL" alt="Avatar" />
+
+                <span *ngIf="!photoURL">
+                    {{ username.charAt(0).toUpperCase() }}
+                </span>
+            </div>
+
+            <h2>{{ username }}</h2>
+
+            <div class="avatar-actions">
+
+                <button type="button" class="secondary-button" (click)="changeAvatar()">
+                    <i data-lucide="camera"></i>
+                    <span>Avatar ändern</span>
+                </button>
+
+                <button *ngIf="photoURL" type="button" class="delete-avatar-button" (click)="deleteAvatar()">
+                    <i data-lucide="trash-2"></i>
+                    <span>Avatar löschen</span>
+                </button>
+
+            </div>
+
+            <div class="avatar-paste-field" tabindex="0" (paste)="pasteAvatar($event)">
+                <span>Bild hier einfügen</span>
+                <small>Ctrl + V</small>
+            </div>
+
+            <div class="form-message" *ngIf="avatarMessage">
+                {{ avatarMessage }}
+            </div>
+            <button type="button" class="secondary-button refresh-button" (click)="refreshUserData()">
+                <i data-lucide="refresh-cw"></i>
+                <span>Daten aktualisieren</span>
+            </button>
+
+        </section>
+
+
+        <section class="account-section">
+
+            <h3>Persönliche Daten</h3>
+
+            <div class="section-divider"></div>
+
+
+            <div class="form-group">
+
+                <label for="username">
+                    Benutzername
+                </label>
+
+                <input id="username" name="username" type="text" [(ngModel)]="newUsername" maxlength="30"
+                    autocomplete="username" />
+
+            </div>
+
+
+            <div class="section-actions">
+
+                <button type="button" class="primary-button" (click)="saveUsername()">
+
+                    Namen speichern
+
+                </button>
+
+            </div>
+
+
+            <div class="form-message" *ngIf="usernameMessage">
+
+                {{ usernameMessage }}
+
+            </div>
+
+        </section>
+
+
+        <section class="account-section">
+
+            <h3>Passwort</h3>
+
+            <div class="section-divider"></div>
+
+
+            <div class="form-group">
+
+                <label for="newPassword">
+                    Neues Passwort
+                </label>
+
+                <input id="newPassword" name="newPassword" type="password" [(ngModel)]="newPassword"
+                    autocomplete="new-password" />
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="confirmPassword">
+                    Passwort bestätigen
+                </label>
+
+                <input id="confirmPassword" name="confirmPassword" type="password" [(ngModel)]="confirmPassword"
+                    autocomplete="new-password" />
+
+            </div>
+
+
+            <div class="section-actions">
+
+                <button type="button" class="primary-button" (click)="changePassword()">
+
+                    Passwort ändern
+
+                </button>
+
+            </div>
+
+
+            <div class="form-message" *ngIf="passwordMessage">
+
+                {{ passwordMessage }}
+
+            </div>
+
+        </section>
+
+    </div>
+
+</div>

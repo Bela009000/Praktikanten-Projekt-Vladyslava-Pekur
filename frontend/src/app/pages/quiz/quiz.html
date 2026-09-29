@@ -15,13 +15,23 @@
 
         <main *ngIf="!isStarted" class="selection-card">
 
+            <div class="mode-switch">
+                <button type="button" class="mode-button" [class.active]="mode === 'quiz'" (click)="setMode('quiz')">
+                    Quiz
+                </button>
+                <button type="button" class="mode-button" [class.active]="mode === 'memory'"
+                    (click)="setMode('memory')">
+                    Memory
+                </button>
+            </div>
+
             <h2>Thema auswählen</h2>
 
             <p class="selection-text">
-                Wähle ein Thema für dein Quiz.
+                {{ mode === 'quiz' ? 'Wähle ein Thema für dein Quiz.' : 'Wähle ein Thema für das Memory-Spiel.' }}
             </p>
 
-            <select [(ngModel)]="selectedTopicId" class="topic-select">
+            <select id="quizTopic" name="quizTopic" [(ngModel)]="selectedTopicId" class="topic-select">
 
                 <option [ngValue]="null">
                     Thema auswählen...
@@ -34,7 +44,7 @@
             </select>
 
             <button type="button" class="start-button" (click)="startQuiz()" [disabled]="selectedTopicId === null">
-                Quiz starten →
+                {{ mode === 'quiz' ? 'Quiz starten →' : 'Memory starten →' }}
             </button>
 
             <div class="no-topics" *ngIf="topics.length === 0">
@@ -51,7 +61,7 @@
 
         </main>
 
-        <main *ngIf="isStarted && !isFinished && currentWord" class="quiz-card">
+        <main *ngIf="isStarted && mode === 'quiz' && !isFinished && currentWord" class="quiz-card">
 
             <div class="quiz-header">
 
@@ -91,8 +101,8 @@
                     Deine Antwort
                 </label>
 
-                <input id="userAnswer" type="text" [(ngModel)]="userAnswer" placeholder="Deine Antwort eingeben..."
-                    [disabled]="showAnswer" (keyup.enter)="checkAnswer()" />
+                <input id="userAnswer" name="userAnswer" type="text" [(ngModel)]="userAnswer"
+                    placeholder="Deine Antwort eingeben..." [disabled]="showAnswer" (keyup.enter)="checkAnswer()" />
 
                 <button *ngIf="!showAnswer" type="button" class="show-answer-button" (click)="checkAnswer()"
                     [disabled]="userAnswer.trim() === ''">
@@ -139,7 +149,11 @@
 
         </main>
 
-        <main *ngIf="isFinished" class="result-card">
+        <app-memory-game *ngIf="isStarted && mode === 'memory'" [cards]="memoryCards" [topicName]="selectedTopicName"
+            (back)="backToSelection()">
+        </app-memory-game>
+
+        <main *ngIf="isFinished && mode === 'quiz'" class="result-card">
 
             <h2>
                 Quiz abgeschlossen!

@@ -30,8 +30,13 @@ export interface Card {
 export class DataService {
 
   private topicsCache = new Map<string, Topic[]>();
+  private topicsRequests = new Map<string, Promise<Topic[]>>();
+
   private cardsCache = new Map<string, Card[]>();
+  private cardsRequests = new Map<string, Promise<Card[]>>();
+
   private quizCountCache = new Map<string, number>();
+  private quizCountRequests = new Map<string, Promise<number>>();
 
   constructor(private authService: AuthService) {}
 
@@ -54,6 +59,24 @@ export class DataService {
       return cachedTopics;
     }
 
+    const existingRequest = this.topicsRequests.get(userId);
+
+    if (existingRequest) {
+      return existingRequest;
+    }
+
+    const request = this.loadTopics(userId);
+
+    this.topicsRequests.set(userId, request);
+
+    try {
+      return await request;
+    } finally {
+      this.topicsRequests.delete(userId);
+    }
+  }
+
+  private async loadTopics(userId: string): Promise<Topic[]> {
     const topicsRef = collection(db, 'topics');
 
     const q = query(
@@ -86,6 +109,7 @@ export class DataService {
 
   async deleteTopic(topicId: string): Promise<void> {
     const userId = await this.getUserId();
+
     const cards = await this.getCards(topicId);
 
     for (const card of cards) {
@@ -94,9 +118,12 @@ export class DataService {
       );
     }
 
-    await deleteDoc(doc(db, 'topics', topicId));
+    await deleteDoc(
+      doc(db, 'topics', topicId)
+    );
 
     this.cardsCache.delete(topicId);
+    this.cardsRequests.delete(topicId);
     this.topicsCache.delete(userId);
   }
 
@@ -107,6 +134,24 @@ export class DataService {
       return cachedCards;
     }
 
+    const existingRequest = this.cardsRequests.get(topicId);
+
+    if (existingRequest) {
+      return existingRequest;
+    }
+
+    const request = this.loadCards(topicId);
+
+    this.cardsRequests.set(topicId, request);
+
+    try {
+      return await request;
+    } finally {
+      this.cardsRequests.delete(topicId);
+    }
+  }
+
+  private async loadCards(topicId: string): Promise<Card[]> {
     const snapshot = await getDocs(
       collection(db, 'topics', topicId, 'cards')
     );
@@ -192,6 +237,24 @@ export class DataService {
       return cachedCount;
     }
 
+    const existingRequest = this.quizCountRequests.get(userId);
+
+    if (existingRequest) {
+      return existingRequest;
+    }
+
+    const request = this.loadQuizCount(userId);
+
+    this.quizCountRequests.set(userId, request);
+
+    try {
+      return await request;
+    } finally {
+      this.quizCountRequests.delete(userId);
+    }
+  }
+
+  private async loadQuizCount(userId: string): Promise<number> {
     const snapshot = await getDocs(
       collection(db, 'users', userId, 'quizAttempts')
     );
@@ -221,5 +284,14 @@ export class DataService {
     );
 
     this.quizCountCache.delete(userId);
+  }
+
+  clearCache(): void {
+    this.topicsCache.clear();
+    this.topicsRequests.clear();
+    this.cardsCache.clear();
+    this.cardsRequests.clear();
+    this.quizCountCache.clear();
+    this.quizCountRequests.clear();
   }
 }

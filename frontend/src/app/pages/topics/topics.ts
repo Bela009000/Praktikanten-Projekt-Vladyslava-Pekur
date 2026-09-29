@@ -13,9 +13,11 @@ import { DataService, Topic } from '../../services/data.service';
 export class Topics {
 
   topics: Topic[] = [];
-  newTopicName = '';
+  newTopicName = "";
   wordCounts: { [topicId: string]: number } = {};
+  searchTerm = "";
   isLoading = true;
+  isAddingTopic = false;
 
   constructor(
     private dataService: DataService,
@@ -63,6 +65,27 @@ export class Topics {
     return this.wordCounts[topicId] || 0;
   }
 
+  get filteredTopics(): Topic[] {
+    const term = this.searchTerm.trim().toLowerCase();
+
+    if (term === '') {
+      return this.topics;
+    }
+
+    return this.topics.filter(topic =>
+      topic.name.toLowerCase().includes(term)
+    );
+  }
+
+  startAddTopic() {
+    this.isAddingTopic = true;
+  }
+
+  cancelAddTopic() {
+    this.isAddingTopic = false;
+    this.newTopicName = '';
+  }
+
   async addTopic() {
     const name = this.newTopicName.trim();
 
@@ -74,6 +97,7 @@ export class Topics {
       await this.dataService.addTopic(name);
 
       this.newTopicName = '';
+      this.isAddingTopic = false;
 
       await this.loadTopics();
 
