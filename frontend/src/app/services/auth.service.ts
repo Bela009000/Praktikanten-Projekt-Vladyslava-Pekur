@@ -5,7 +5,8 @@ import {
   updateProfile,
   onAuthStateChanged,
   deleteUser,
-  updatePassword
+  updatePassword,
+  reload
 } from 'firebase/auth';
 
 import type { User } from 'firebase/auth';
@@ -40,69 +41,190 @@ export class AuthService {
   photoURL$ =
     this.photoURLSubject.asObservable();
 
+  private userDataSubject =
+    new BehaviorSubject<any>(null);
+
+  userData$ =
+    this.userDataSubject.asObservable();
+
+  private userDataCache: any = null;
+
+  private authReady: Promise<User | null>;
+
   constructor() {
-    onAuthStateChanged(auth, async user => {
-      this.currentUser = user;
 
-      if (!user) {
-        this.photoURLSubject.next('');
-        return;
-      }
+    this.authReady =
+      new Promise(resolve => {
 
-      try {
-        const data = await this.getUserData();
+        const unsubscribe =
+          onAuthStateChanged(
+            auth,
+            async user => {
 
-        this.photoURLSubject.next(
-          data?.photoURL || ''
-        );
-      } catch (error) {
-        console.error(
-          'AUTH USER DATA ERROR:',
-          error
-        );
+              this.currentUser = user;
 
-        this.photoURLSubject.next('');
-      }
-    });
+              if (!user) {
+
+                this.userDataCache = null;
+
+                this.userDataSubject.next(null);
+                this.photoURLSubject.next('');
+
+                unsubscribe();
+
+                resolve(null);
+
+                return;
+              }
+
+              try {
+
+                const data =
+                  await this.loadUserDataFromFirestore(
+                    user
+                  );
+
+                this.userDataCache =
+                  data;
+
+                this.userDataSubject.next(
+                  data
+                );
+
+                this.photoURLSubject.next(
+                  data?.photoURL || ''
+                );
+
+              } catch (error) {
+
+                console.error(
+                  'AUTH USER DATA ERROR:',
+                  error
+                );
+
+                this.userDataCache = null;
+
+                this.userDataSubject.next(null);
+                this.photoURLSubject.next('');
+              }
+
+              unsubscribe();
+
+              resolve(user);
+            }
+          );
+      });
   }
 
   async waitForAuth(): Promise<User | null> {
+
     if (this.currentUser) {
       return this.currentUser;
     }
 
-    return new Promise(resolve => {
-      const unsubscribe =
-        onAuthStateChanged(auth, user => {
-          this.currentUser = user;
-
-          unsubscribe();
-
-          resolve(user);
-        });
-    });
+    return this.authReady;
   }
 
-  async getUserData(): Promise<any> {
-    const user = await this.waitForAuth();
+  private async loadUserDataFromFirestore(
+    user: User
+  ): Promise<any> {
 
-    if (!user) {
-      return null;
-    }
+    const userRef =
+      doc(
+        db,
+        'users',
+        user.uid
+      );
 
-    const userRef = doc(
-      db,
-      'users',
-      user.uid
-    );
-
-    const snapshot = await getDoc(userRef);
+    const snapshot =
+      await getDoc(userRef);
 
     if (!snapshot.exists()) {
       return null;
     }
 
     return snapshot.data();
+  }
+
+  async getUserData(): Promise<any> {
+
+    const user =
+      await this.waitForAuth();
+
+    if (!user) {
+      return null;
+    }
+
+    if (this.userDataCache) {
+      return this.userDataCache;
+    }
+
+    const data =
+      await this.loadUserDataFromFirestore(
+        user
+      );
+
+    this.userDataCache =
+      data;
+
+    this.userDataSubject.next(
+      data
+    );
+
+    this.photoURLSubject.next(
+      data?.photoURL || ''
+    );
+
+    return data;
+  }
+
+  async refreshUserData(): Promise<{
+    user: User;
+    data: any;
+  } | null> {
+
+    let user =
+      await this.waitForAuth();
+
+    if (!user) {
+
+      this.currentUser = null;
+      this.userDataCache = null;
+
+      this.userDataSubject.next(null);
+      this.photoURLSubject.next('');
+
+      return null;
+    }
+
+    await reload(user);
+
+    user =
+      auth.currentUser || user;
+
+    this.currentUser =
+      user;
+
+    const data =
+      await this.loadUserDataFromFirestore(
+        user
+      );
+
+    this.userDataCache =
+      data;
+
+    this.userDataSubject.next(
+      data
+    );
+
+    this.photoURLSubject.next(
+      data?.photoURL || ''
+    );
+
+    return {
+      user,
+      data
+    };
   }
 
   async register(
@@ -112,20 +234,31 @@ export class AuthService {
   ): Promise<User> {
 
     const usersRef =
-      collection(db, 'users');
+      collection(
+        db,
+        'users'
+      );
 
     const usernameQuery =
       query(
         usersRef,
-        where('username', '==', username)
+        where(
+          'username',
+          '==',
+          username
+        )
       );
 
     const usernameSnapshot =
-      await getDocs(usernameQuery);
+      await getDocs(
+        usernameQuery
+      );
 
     if (!usernameSnapshot.empty) {
+
       throw {
-        code: 'auth/username-already-in-use'
+        code:
+          'auth/username-already-in-use'
       };
     }
 
@@ -139,20 +272,37 @@ export class AuthService {
     const user =
       userCredential.user;
 
-    await updateProfile(user, {
-      displayName: username
-    });
-
-    await setDoc(
-      doc(db, 'users', user.uid),
+    await updateProfile(
+      user,
       {
-        username,
-        email,
-        photoURL: ''
+        displayName: username
       }
     );
 
-    this.currentUser = user;
+    const userData = {
+      username,
+      email,
+      photoURL: ''
+    };
+
+    await setDoc(
+      doc(
+        db,
+        'users',
+        user.uid
+      ),
+      userData
+    );
+
+    this.currentUser =
+      user;
+
+    this.userDataCache =
+      userData;
+
+    this.userDataSubject.next(
+      userData
+    );
 
     this.photoURLSubject.next('');
 
@@ -164,12 +314,18 @@ export class AuthService {
     password: string
   ): Promise<User> {
 
-    let email = usernameOrEmail;
+    let email =
+      usernameOrEmail;
 
-    if (!usernameOrEmail.includes('@')) {
+    if (
+      !usernameOrEmail.includes('@')
+    ) {
 
       const usersRef =
-        collection(db, 'users');
+        collection(
+          db,
+          'users'
+        );
 
       const q =
         query(
@@ -185,13 +341,16 @@ export class AuthService {
         await getDocs(q);
 
       if (snapshot.empty) {
+
         throw {
-          code: 'auth/user-not-found'
+          code:
+            'auth/user-not-found'
         };
       }
 
       email =
-        snapshot.docs[0].data()['email'];
+        snapshot.docs[0]
+          .data()['email'];
     }
 
     const userCredential =
@@ -201,12 +360,29 @@ export class AuthService {
         password
       );
 
-    this.currentUser =
+    const user =
       userCredential.user;
 
-    await this.refreshUserData();
+    this.currentUser =
+      user;
 
-    return userCredential.user;
+    const data =
+      await this.loadUserDataFromFirestore(
+        user
+      );
+
+    this.userDataCache =
+      data;
+
+    this.userDataSubject.next(
+      data
+    );
+
+    this.photoURLSubject.next(
+      data?.photoURL || ''
+    );
+
+    return user;
   }
 
   async changeUsername(
@@ -229,13 +405,18 @@ export class AuthService {
       !username ||
       username.includes('@')
     ) {
+
       throw {
-        code: 'auth/invalid-username'
+        code:
+          'auth/invalid-username'
       };
     }
 
     const usersRef =
-      collection(db, 'users');
+      collection(
+        db,
+        'users'
+      );
 
     const usernameQuery =
       query(
@@ -248,7 +429,9 @@ export class AuthService {
       );
 
     const usernameSnapshot =
-      await getDocs(usernameQuery);
+      await getDocs(
+        usernameQuery
+      );
 
     const usernameIsUsedByAnotherUser =
       usernameSnapshot.docs.some(
@@ -256,26 +439,45 @@ export class AuthService {
           userDoc.id !== user.uid
       );
 
-    if (usernameIsUsedByAnotherUser) {
+    if (
+      usernameIsUsedByAnotherUser
+    ) {
+
       throw {
         code:
           'auth/username-already-in-use'
       };
     }
 
-    await updateProfile(user, {
-      displayName: username
-    });
+    await updateProfile(
+      user,
+      {
+        displayName: username
+      }
+    );
 
     await updateDoc(
-      doc(db, 'users', user.uid),
+      doc(
+        db,
+        'users',
+        user.uid
+      ),
       {
         username
       }
     );
 
+    this.userDataCache = {
+      ...(this.userDataCache || {}),
+      username
+    };
+
     this.currentUser =
       auth.currentUser;
+
+    this.userDataSubject.next(
+      this.userDataCache
+    );
 
     return user;
   }
@@ -293,9 +495,13 @@ export class AuthService {
       );
     }
 
-    if (newPassword.length < 6) {
+    if (
+      newPassword.length < 6
+    ) {
+
       throw {
-        code: 'auth/weak-password'
+        code:
+          'auth/weak-password'
       };
     }
 
@@ -318,23 +524,35 @@ export class AuthService {
       );
     }
 
-    if (!file.type.startsWith('image/')) {
+    if (
+      !file.type.startsWith('image/')
+    ) {
+
       throw {
-        code: 'avatar/invalid-file'
+        code:
+          'avatar/invalid-file'
       };
     }
 
     const base64 =
       await this.compressImage(file);
 
-    if (base64.length > 300000) {
+    if (
+      base64.length > 300000
+    ) {
+
       throw {
-        code: 'avatar-too-large'
+        code:
+          'avatar-too-large'
       };
     }
 
     await setDoc(
-      doc(db, 'users', user.uid),
+      doc(
+        db,
+        'users',
+        user.uid
+      ),
       {
         photoURL: base64
       },
@@ -343,7 +561,18 @@ export class AuthService {
       }
     );
 
-    this.photoURLSubject.next(base64);
+    this.userDataCache = {
+      ...(this.userDataCache || {}),
+      photoURL: base64
+    };
+
+    this.userDataSubject.next(
+      this.userDataCache
+    );
+
+    this.photoURLSubject.next(
+      base64
+    );
 
     return base64;
   }
@@ -360,7 +589,11 @@ export class AuthService {
     }
 
     await setDoc(
-      doc(db, 'users', user.uid),
+      doc(
+        db,
+        'users',
+        user.uid
+      ),
       {
         photoURL: ''
       },
@@ -369,25 +602,16 @@ export class AuthService {
       }
     );
 
-    this.photoURLSubject.next('');
-  }
+    this.userDataCache = {
+      ...(this.userDataCache || {}),
+      photoURL: ''
+    };
 
-  async refreshUserData(): Promise<void> {
-
-    const user =
-      await this.waitForAuth();
-
-    if (!user) {
-      this.photoURLSubject.next('');
-      return;
-    }
-
-    const data =
-      await this.getUserData();
-
-    this.photoURLSubject.next(
-      data?.photoURL || ''
+    this.userDataSubject.next(
+      this.userDataCache
     );
+
+    this.photoURLSubject.next('');
   }
 
   private compressImage(
@@ -407,7 +631,8 @@ export class AuthService {
 
           image.onload = () => {
 
-            const maxSize = 512;
+            const maxSize =
+              512;
 
             let width =
               image.width;
@@ -415,9 +640,13 @@ export class AuthService {
             let height =
               image.height;
 
-            if (width > height) {
+            if (
+              width > height
+            ) {
 
-              if (width > maxSize) {
+              if (
+                width > maxSize
+              ) {
 
                 height =
                   Math.round(
@@ -426,12 +655,15 @@ export class AuthService {
                     width
                   );
 
-                width = maxSize;
+                width =
+                  maxSize;
               }
 
             } else {
 
-              if (height > maxSize) {
+              if (
+                height > maxSize
+              ) {
 
                 width =
                   Math.round(
@@ -440,7 +672,8 @@ export class AuthService {
                     height
                   );
 
-                height = maxSize;
+                height =
+                  maxSize;
               }
             }
 
@@ -449,13 +682,17 @@ export class AuthService {
                 'canvas'
               );
 
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width =
+              width;
+
+            canvas.height =
+              height;
 
             const context =
               canvas.getContext('2d');
 
             if (!context) {
+
               reject(
                 new Error(
                   'Canvas konnte nicht erstellt werden'
@@ -483,6 +720,7 @@ export class AuthService {
           };
 
           image.onerror = () => {
+
             reject(
               new Error(
                 'Bild konnte nicht geladen werden'
@@ -495,6 +733,7 @@ export class AuthService {
         };
 
         reader.onerror = () => {
+
           reject(
             new Error(
               'Bild konnte nicht gelesen werden'
@@ -511,8 +750,13 @@ export class AuthService {
 
     await signOut(auth);
 
-    this.currentUser = null;
+    this.currentUser =
+      null;
 
+    this.userDataCache =
+      null;
+
+    this.userDataSubject.next(null);
     this.photoURLSubject.next('');
   }
 
@@ -531,7 +775,10 @@ export class AuthService {
       user.uid;
 
     const topicsRef =
-      collection(db, 'topics');
+      collection(
+        db,
+        'topics'
+      );
 
     const topicsQuery =
       query(
@@ -544,7 +791,9 @@ export class AuthService {
       );
 
     const topicsSnapshot =
-      await getDocs(topicsQuery);
+      await getDocs(
+        topicsQuery
+      );
 
     for (
       const topic of
@@ -565,10 +814,14 @@ export class AuthService {
         const card of
         cardsSnapshot.docs
       ) {
-        await deleteDoc(card.ref);
+        await deleteDoc(
+          card.ref
+        );
       }
 
-      await deleteDoc(topic.ref);
+      await deleteDoc(
+        topic.ref
+      );
     }
 
     const quizAttemptsSnapshot =
@@ -585,7 +838,9 @@ export class AuthService {
       const attempt of
       quizAttemptsSnapshot.docs
     ) {
-      await deleteDoc(attempt.ref);
+      await deleteDoc(
+        attempt.ref
+      );
     }
 
     await deleteDoc(
@@ -598,12 +853,18 @@ export class AuthService {
 
     await deleteUser(user);
 
-    this.currentUser = null;
+    this.currentUser =
+      null;
 
+    this.userDataCache =
+      null;
+
+    this.userDataSubject.next(null);
     this.photoURLSubject.next('');
   }
 
   getCurrentUsername(): string {
+
     return (
       this.currentUser?.displayName ||
       ''
