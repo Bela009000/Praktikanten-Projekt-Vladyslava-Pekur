@@ -31,7 +31,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
-  background: rgba(161, 106, 255, 0.94);
+  background: var(--topbar-bg);
   color: white;
   border-radius: 0 0 10px 10px;
   box-shadow: 0 3px 12px rgba(76, 29, 149, 0.15);
@@ -214,10 +214,10 @@ body {
   right: 0;
   width: 230px;
   padding: 10px;
-  background: rgba(255, 255, 255, 0.97);
+  background: var(--card-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(124, 58, 237, 0.1);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   box-shadow: 0 12px 30px rgba(76, 29, 149, 0.16);
   z-index: 1001;
@@ -228,7 +228,7 @@ body {
   align-items: center;
   gap: 10px;
   padding: 8px;
-  color: #4c1d95;
+  color: var(--text-primary);
 }
 
 .account-header strong {
@@ -241,14 +241,14 @@ body {
   display: block;
   margin-top: 2px;
   padding-left: 0;
-  color: #9ca3af;
+  color: var(--text-muted);
   font-size: 11px;
 }
 
 .account-divider {
   height: 1px;
   margin: 6px 0;
-  background: #eee8ff;
+  background: var(--divider-color);
 }
 
 .account-menu-button,
@@ -270,11 +270,11 @@ body {
 
 .account-menu-button {
   background: transparent;
-  color: #4c1d95;
+  color: var(--text-primary);
 }
 
 .account-menu-button:hover {
-  background: #f5f0ff;
+  background: var(--menu-hover);
 }
 
 .account-menu-button svg,
@@ -291,10 +291,10 @@ body {
 .username-editor input {
   width: 100%;
   padding: 9px 10px;
-  background: white;
-  border: 1px solid #ddd6fe;
+  background: var(--card-bg);
+  border: 1px solid var(--input-border);
   border-radius: 7px;
-  color: #4c1d95;
+  color: var(--text-primary);
   font-family: inherit;
   font-size: 13px;
   outline: none;
@@ -405,7 +405,7 @@ app-root {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #9b63f5;
+  background: var(--avatar-bg);
   color: white;
   font-size: 18px;
   font-weight: 700;
@@ -438,7 +438,7 @@ app-root {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #9b63f5;
+  background: var(--avatar-bg);
   color: white;
   font-size: 12px;
   font-weight: 600;
@@ -475,7 +475,7 @@ app-root {
 
 .account-header-info span {
   font-size: 13px;
-  color: #8b8199;
+  color: var(--text-muted);
 }
 
 @media (min-width: 901px) {

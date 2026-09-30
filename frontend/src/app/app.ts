@@ -13,7 +13,7 @@ import {
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
+import { ThemeToggle } from './shared/theme-toggle/theme-toggle';
 import { filter } from 'rxjs/operators';
 
 import {
@@ -40,7 +40,8 @@ import { AuthService } from './services/auth.service';
     RouterOutlet,
     RouterLink,
     CommonModule,
-    FormsModule
+    FormsModule,
+    ThemeToggle
   ],
   templateUrl: './app.html',
   styleUrl: './app.css'
