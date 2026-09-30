@@ -34,7 +34,7 @@ body {
   background: var(--topbar-bg);
   color: white;
   border-radius: 0 0 10px 10px;
-  box-shadow: 0 3px 12px rgba(76, 29, 149, 0.15);
+  box-shadow: 0 2px 12px rgba(200, 167, 248, 0.159);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }

@@ -23,7 +23,7 @@
   height: 420px;
   top: -120px;
   right: -100px;
-  background: radial-gradient(circle, #b687e2, transparent 55%);
+  background: radial-gradient(circle, #b687e293, transparent 65%);
 }
 
 .blob-2 {
@@ -31,7 +31,7 @@
   height: 380px;
   bottom: -140px;
   left: -120px;
-  background: radial-gradient(circle, #a855f7, transparent 65%);
+  background: radial-gradient(circle, #a955f780, transparent 65%);
 }
 
 .content {
@@ -81,6 +81,7 @@
   width: 220px;
   height: auto;
   flex-shrink: 0;
+  filter: drop-shadow(0 0 50px rgba(161, 106, 255, 0.472));
 }
 
 .stats-row {

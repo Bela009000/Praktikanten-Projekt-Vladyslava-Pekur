@@ -11,8 +11,19 @@
 
 .switch {
   font-size: 16.5px;
+  position: relative;
   display: inline-flex;
+  align-items: center;
   line-height: 0;
+  width: 60px;
+  height: 25px;
+}
+.switch__icon {
+  z-index: 2;
+}
+
+.switch__input {
+  z-index: 1;
 }
 
 .switch__input,
@@ -144,7 +155,7 @@
 }
 
 .switch__input:checked {
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(108, 36, 217, 0.502);
 }
 
 .switch__input:checked:before,

@@ -3,11 +3,12 @@
 }
 
 .memory-wrapper {
-  background: white;
-  border: 1px solid #ede9fe;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 22px;
   box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08);
   padding: 35px;
+  color: var(--text-primary);
 }
 
 .memory-header {
@@ -19,14 +20,14 @@
 }
 
 .memory-topic {
-  color: #7c3aed;
+  color: var(--accent);
   font-size: 14px;
   font-weight: 600;
 }
 
 .memory-header h2 {
   margin: 5px 0 0;
-  color: #4c1d95;
+  color: var(--text-heading);
   font-size: 24px;
 }
 
@@ -42,12 +43,12 @@
 }
 
 .stat-label {
-  color: #9ca3af;
+  color: var(--text-muted);
   font-size: 12px;
 }
 
 .stat-value {
-  color: #4c1d95;
+  color: var(--text-primary);
   font-size: 20px;
   font-weight: 700;
 }
@@ -86,6 +87,7 @@
   padding: 8px;
   border-radius: 12px;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   text-align: center;
   font-size: 13px;
   font-weight: 600;
@@ -93,16 +95,16 @@
 }
 
 .memory-tile-front {
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
   color: white;
   font-size: 22px;
 }
 
 .memory-tile-back {
-  background: #f5f3ff;
-  color: #4c1d95;
+  background: var(--accent-light);
+  color: var(--text-primary);
   transform: rotateY(180deg);
-  border: 1px solid #ddd6fe;
+  border: 1px solid var(--border-color);
 }
 
 .memory-tile.matched .memory-tile-back {
@@ -123,13 +125,13 @@
 
 .memory-finish h3 {
   margin: 0 0 6px;
-  color: #4c1d95;
+  color: var(--text-heading);
   font-size: 24px;
 }
 
 .memory-finish p {
   margin: 0 0 20px;
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 .finish-stats {
@@ -146,13 +148,13 @@
 }
 
 .finish-stat-value {
-  color: #7c3aed;
+  color: var(--accent);
   font-size: 28px;
   font-weight: 700;
 }
 
 .finish-stat-label {
-  color: #9ca3af;
+  color: var(--text-muted);
   font-size: 13px;
 }
 
@@ -174,22 +176,22 @@
 
 .restart-button {
   border: none;
-  background: #7c3aed;
+  background: var(--accent);
   color: white;
 }
 
 .restart-button:hover {
-  background: #6d28d9;
+  background: var(--accent-dark);
 }
 
 .selection-button {
-  border: 1px solid #d8b4fe;
-  background: white;
-  color: #6d28d9;
+  border: 1px solid var(--input-border);
+  background: var(--card-bg);
+  color: var(--accent-dark);
 }
 
 .selection-button:hover {
-  background: #faf7ff;
+  background: var(--accent-light);
 }
 
 .memory-back-link {
@@ -197,19 +199,28 @@
   margin: 10px auto 0;
   background: none;
   border: none;
-  color: #7c3aed;
+  color: var(--accent);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 }
 
 .memory-back-link:hover {
-  color: #5b21b6;
+  color: var(--accent-dark);
 }
 
 @media (max-width: 700px) {
   .memory-wrapper {
     padding: 22px;
+  }
+
+  .memory-header {
+    flex-direction: column;
+  }
+
+  .memory-stats {
+    width: 100%;
+    justify-content: center;
   }
 
   .memory-tile-front {
@@ -218,5 +229,9 @@
 
   .memory-tile-back {
     font-size: 11px;
+  }
+
+  .finish-actions {
+    flex-direction: column;
   }
 }

@@ -2,6 +2,7 @@
   min-height: 100%;
   padding: 32px 40px 60px;
   box-sizing: border-box;
+  color: var(--text-primary);
 }
 
 .account-page-header {
@@ -16,6 +17,7 @@
   margin: 0 auto;
   font-size: 28px;
   font-weight: 700;
+  color: var(--text-heading);
 }
 
 .back-button {
@@ -26,9 +28,15 @@
   gap: 8px;
   border: none;
   background: transparent;
+  color: var(--text-primary);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.back-button:hover {
+  color: var(--accent);
 }
 
 .back-button i {
@@ -39,10 +47,13 @@
 .account-card {
   max-width: 900px;
   margin: 0 auto;
-  background: white;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 20px;
   padding: 40px;
   box-sizing: border-box;
+  color: var(--text-primary);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
 .avatar-section {
@@ -60,7 +71,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #9b63f5;
+  background: var(--avatar-bg);
   color: white;
   font-size: 52px;
   font-weight: 700;
@@ -81,6 +92,7 @@
 
 .avatar-section h2 {
   margin: 16px 0;
+  color: var(--text-heading);
   font-size: 22px;
   font-weight: 700;
 }
@@ -106,42 +118,42 @@
   font-weight: 600;
   cursor: pointer;
   transition:
-    background 0.2s,
-    color 0.2s,
-    border-color 0.2s;
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .primary-button {
   border: none;
-  background: #8d55e8;
+  background: var(--accent);
   color: white;
 }
 
 .primary-button:hover {
-  background: #7842d2;
+  background: var(--accent-dark);
 }
 
 .secondary-button {
-  border: none;
-  background: #f1eafa;
-  color: #6835b8;
+  border: 1px solid var(--border-color);
+  background: var(--accent-light);
+  color: var(--text-primary);
   margin-top: 18px;
 }
 
 .secondary-button:hover {
-  background: #e8def8;
+  background: var(--menu-hover);
 }
 
 .delete-avatar-button {
-  border: 1px solid #e5dcdc;
-  background: #fff;
-  color: #b42318;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: #dc2626;
   margin-top: 18px;
 }
 
 .delete-avatar-button:hover {
-  background: #fff1f0;
-  border-color: #efb4ae;
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.35);
 }
 
 .secondary-button i,
@@ -155,7 +167,7 @@
   max-width: 320px;
   min-height: 70px;
   margin-top: 15px;
-  border: 2px dashed #d8c8f5;
+  border: 2px dashed var(--input-border);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
@@ -163,38 +175,39 @@
   justify-content: center;
   gap: 4px;
   cursor: text;
-  color: #7138d9;
-  background: #faf7ff;
+  color: var(--accent);
+  background: var(--accent-light);
   outline: none;
   box-sizing: border-box;
   transition:
-    border-color 0.2s,
-    background 0.2s;
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .avatar-paste-field:hover {
-  border-color: #b89ae9;
-  background: #f8f3ff;
+  border-color: var(--accent);
+  background: var(--menu-hover);
 }
 
 .avatar-paste-field:focus {
-  border-color: #7c3aed;
-  background: #f5efff;
+  border-color: var(--accent);
+  background: var(--accent-light);
 }
 
 .avatar-paste-field span {
+  color: var(--text-primary);
   font-weight: 600;
 }
 
 .avatar-paste-field small {
-  color: #8d7aa8;
+  color: var(--text-muted);
 }
 
 .form-message {
   margin-top: 40px;
   margin-bottom: 15px;
   font-size: 14px;
-  color: #6835b8;
+  color: var(--accent);
   text-align: center;
 }
 
@@ -204,13 +217,14 @@
 
 .account-section h3 {
   margin: 0;
+  color: var(--text-heading);
   font-size: 18px;
   font-weight: 700;
 }
 
 .section-divider {
   height: 1px;
-  background: #e8e1f5;
+  background: var(--divider-color);
   margin: 16px 0 24px;
 }
 
@@ -222,6 +236,7 @@
 }
 
 .form-group label {
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 600;
 }
@@ -230,15 +245,24 @@
   width: 100%;
   box-sizing: border-box;
   padding: 13px 15px;
-  border: 1px solid #ddd5ed;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
+  background: var(--accent-light);
+  color: var(--text-primary);
   font-size: 15px;
   outline: none;
-  transition: border-color 0.2s;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.form-group input::placeholder {
+  color: var(--text-muted);
 }
 
 .form-group input:focus {
-  border-color: #8d55e8;
+  border-color: var(--accent);
+  background: var(--card-bg);
 }
 
 .section-actions {
