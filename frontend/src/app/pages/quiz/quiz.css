@@ -98,6 +98,7 @@
   max-width: 600px;
   margin: 0 auto;
   padding: 45px;
+  box-shadow: 0 6px 60px var(--card-shadow);
 }
 
 .selection-card h2 {
