@@ -27,6 +27,8 @@
   --blob-opacity: 0.35;
   --illustration-glow: none;
   --card-shadow: rgba(0, 0, 0, 0.12);
+  --tile-front-start: #a78bfa;
+  --tile-front-end: #bb9dfc;
 }
 
 html.dark-theme {
@@ -58,6 +60,8 @@ html.dark-theme {
   --blob-opacity: 0.4;
   --illustration-glow: drop-shadow(0 0 35px rgba(167, 139, 250, 0.25));
   --card-shadow: #504c533a;
+  --tile-front-start: var(--accent);
+  --tile-front-end: var(--accent-dark);
 }
 * {
   box-sizing: border-box;
