@@ -7,14 +7,18 @@ import {
   updateDoc,
   getDocs,
   query,
-  where
+  where,
+  writeBatch,
+  Timestamp
 } from 'firebase/firestore';
+
 import { db } from '../firebase.config';
 import { AuthService } from './auth.service';
 
 export interface Topic {
   id: string;
   name: string;
+  createdAt?: Timestamp;
 }
 
 export interface Card {
@@ -38,132 +42,306 @@ export class DataService {
   private quizCountCache = new Map<string, number>();
   private quizCountRequests = new Map<string, Promise<number>>();
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService
+  ) {}
 
   private async getUserId(): Promise<string> {
-    const user = await this.authService.waitForAuth();
+
+    const user =
+      await this.authService.waitForAuth();
 
     if (!user) {
-      throw new Error('Kein Benutzer angemeldet');
+      throw new Error(
+        'Kein Benutzer angemeldet'
+      );
     }
 
     return user.uid;
   }
 
-  async getTopics(): Promise<Topic[]> {
-    const userId = await this.getUserId();
+  // =========================================================
+  // TOPICS
+  // =========================================================
 
-    const cachedTopics = this.topicsCache.get(userId);
+  async getTopics(): Promise<Topic[]> {
+
+    const userId =
+      await this.getUserId();
+
+    const cachedTopics =
+      this.topicsCache.get(userId);
 
     if (cachedTopics) {
       return cachedTopics;
     }
 
-    const existingRequest = this.topicsRequests.get(userId);
+    const existingRequest =
+      this.topicsRequests.get(userId);
 
     if (existingRequest) {
       return existingRequest;
     }
 
-    const request = this.loadTopics(userId);
+    const request =
+      this.loadTopics(userId);
 
-    this.topicsRequests.set(userId, request);
+    this.topicsRequests.set(
+      userId,
+      request
+    );
 
     try {
+
       return await request;
+
     } finally {
-      this.topicsRequests.delete(userId);
+
+      this.topicsRequests.delete(
+        userId
+      );
     }
   }
 
-  private async loadTopics(userId: string): Promise<Topic[]> {
-    const topicsRef = collection(db, 'topics');
+  private async loadTopics(
+    userId: string
+  ): Promise<Topic[]> {
 
-    const q = query(
-      topicsRef,
-      where('userId', '==', userId)
+    const topicsRef =
+      collection(
+        db,
+        'topics'
+      );
+
+    const q =
+      query(
+        topicsRef,
+        where(
+          'userId',
+          '==',
+          userId
+        )
+      );
+
+    const snapshot =
+      await getDocs(q);
+
+    const topics =
+      snapshot.docs.map(
+        docSnap => {
+
+          const data =
+            docSnap.data();
+
+          return {
+            id: docSnap.id,
+            name: data['name'] || '',
+            createdAt:
+              data['createdAt'] instanceof Timestamp
+                ? data['createdAt']
+                : undefined
+          };
+        }
+      );
+
+    // Самые новые темы сверху.
+    //
+    // У старых тем createdAt может отсутствовать,
+    // поэтому они просто отправляются вниз списка.
+    topics.sort(
+      (a, b) => {
+
+        const timeA =
+          a.createdAt?.toMillis() || 0;
+
+        const timeB =
+          b.createdAt?.toMillis() || 0;
+
+        return timeB - timeA;
+      }
     );
 
-    const snapshot = await getDocs(q);
-
-    const topics = snapshot.docs.map(docSnap => ({
-      id: docSnap.id,
-      name: docSnap.data()['name']
-    }));
-
-    this.topicsCache.set(userId, topics);
+    this.topicsCache.set(
+      userId,
+      topics
+    );
 
     return topics;
   }
 
-  async addTopic(name: string): Promise<void> {
-    const userId = await this.getUserId();
+  async addTopic(
+    name: string
+  ): Promise<void> {
 
-    await addDoc(collection(db, 'topics'), {
-      name,
+    const userId =
+      await this.getUserId();
+
+    const cleanName =
+      name.trim();
+
+    if (!cleanName) {
+      return;
+    }
+
+    await addDoc(
+      collection(
+        db,
+        'topics'
+      ),
+      {
+        name: cleanName,
+        userId,
+
+        // Время создания темы.
+        // Благодаря этому новые темы
+        // отображаются сверху.
+        createdAt: Timestamp.now()
+      }
+    );
+
+    // Обязательно очищаем кэш,
+    // чтобы при следующем getTopics()
+    // список загрузился заново.
+    this.topicsCache.delete(
       userId
-    });
-
-    this.topicsCache.delete(userId);
+    );
   }
 
-  async deleteTopic(topicId: string): Promise<void> {
-    const userId = await this.getUserId();
+  async deleteTopic(
+    topicId: string
+  ): Promise<void> {
 
-    const cards = await this.getCards(topicId);
+    const userId =
+      await this.getUserId();
+
+    const cards =
+      await this.getCards(topicId);
+
+    const batch =
+      writeBatch(db);
 
     for (const card of cards) {
-      await deleteDoc(
-        doc(db, 'topics', topicId, 'cards', card.id)
+
+      batch.delete(
+        doc(
+          db,
+          'topics',
+          topicId,
+          'cards',
+          card.id
+        )
       );
     }
 
-    await deleteDoc(
-      doc(db, 'topics', topicId)
+    batch.delete(
+      doc(
+        db,
+        'topics',
+        topicId
+      )
     );
 
-    this.cardsCache.delete(topicId);
-    this.cardsRequests.delete(topicId);
-    this.topicsCache.delete(userId);
+    await batch.commit();
+
+    this.cardsCache.delete(
+      topicId
+    );
+
+    this.cardsRequests.delete(
+      topicId
+    );
+
+    this.topicsCache.delete(
+      userId
+    );
   }
 
-  async getCards(topicId: string): Promise<Card[]> {
-    const cachedCards = this.cardsCache.get(topicId);
+  // =========================================================
+  // CARDS
+  // =========================================================
+
+  async getCards(
+    topicId: string
+  ): Promise<Card[]> {
+
+    const cachedCards =
+      this.cardsCache.get(
+        topicId
+      );
 
     if (cachedCards) {
       return cachedCards;
     }
 
-    const existingRequest = this.cardsRequests.get(topicId);
+    const existingRequest =
+      this.cardsRequests.get(
+        topicId
+      );
 
     if (existingRequest) {
       return existingRequest;
     }
 
-    const request = this.loadCards(topicId);
+    const request =
+      this.loadCards(topicId);
 
-    this.cardsRequests.set(topicId, request);
+    this.cardsRequests.set(
+      topicId,
+      request
+    );
 
     try {
+
       return await request;
+
     } finally {
-      this.cardsRequests.delete(topicId);
+
+      this.cardsRequests.delete(
+        topicId
+      );
     }
   }
 
-  private async loadCards(topicId: string): Promise<Card[]> {
-    const snapshot = await getDocs(
-      collection(db, 'topics', topicId, 'cards')
+  private async loadCards(
+    topicId: string
+  ): Promise<Card[]> {
+
+    const snapshot =
+      await getDocs(
+        collection(
+          db,
+          'topics',
+          topicId,
+          'cards'
+        )
+      );
+
+    const cards =
+      snapshot.docs.map(
+        docSnap => {
+
+          const data =
+            docSnap.data();
+
+          return {
+            id: docSnap.id,
+
+            question:
+              data['question'] || '',
+
+            answer:
+              data['answer'] || '',
+
+            learned:
+              data['learned'] || false
+          };
+        }
+      );
+
+    this.cardsCache.set(
+      topicId,
+      cards
     );
-
-    const cards = snapshot.docs.map(docSnap => ({
-      id: docSnap.id,
-      question: docSnap.data()['question'],
-      answer: docSnap.data()['answer'],
-      learned: docSnap.data()['learned'] || false
-    }));
-
-    this.cardsCache.set(topicId, cards);
 
     return cards;
   }
@@ -173,8 +351,14 @@ export class DataService {
     question: string,
     answer: string
   ): Promise<void> {
+
     await addDoc(
-      collection(db, 'topics', topicId, 'cards'),
+      collection(
+        db,
+        'topics',
+        topicId,
+        'cards'
+      ),
       {
         question,
         answer,
@@ -182,7 +366,83 @@ export class DataService {
       }
     );
 
-    this.cardsCache.delete(topicId);
+    this.cardsCache.delete(
+      topicId
+    );
+  }
+
+  async addCards(
+    topicId: string,
+    cards: {
+      question: string;
+      answer: string;
+    }[]
+  ): Promise<Card[]> {
+
+    if (cards.length === 0) {
+      return [];
+    }
+
+    const batch =
+      writeBatch(db);
+
+    const cardsRef =
+      collection(
+        db,
+        'topics',
+        topicId,
+        'cards'
+      );
+
+    const newCards: Card[] = [];
+
+    for (const card of cards) {
+
+      const cardRef =
+        doc(cardsRef);
+
+      const newCard: Card = {
+        id: cardRef.id,
+        question: card.question,
+        answer: card.answer,
+        learned: false
+      };
+
+      batch.set(
+        cardRef,
+        {
+          question: card.question,
+          answer: card.answer,
+          learned: false
+        }
+      );
+
+      newCards.push(
+        newCard
+      );
+    }
+
+    await batch.commit();
+
+    // Если карты уже были загружены,
+    // обновляем кэш сразу и не делаем getDocs().
+    const cachedCards =
+      this.cardsCache.get(
+        topicId
+      );
+
+    if (cachedCards) {
+
+      this.cardsCache.set(
+        topicId,
+        [
+          ...cachedCards,
+          ...newCards
+        ]
+      );
+    }
+
+    return newCards;
   }
 
   async updateCard(
@@ -191,26 +451,76 @@ export class DataService {
     question: string,
     answer: string
   ): Promise<void> {
+
     await updateDoc(
-      doc(db, 'topics', topicId, 'cards', cardId),
+      doc(
+        db,
+        'topics',
+        topicId,
+        'cards',
+        cardId
+      ),
       {
         question,
         answer
       }
     );
 
-    this.cardsCache.delete(topicId);
+    this.cardsCache.delete(
+      topicId
+    );
   }
 
   async deleteCard(
     topicId: string,
     cardId: string
   ): Promise<void> {
+
     await deleteDoc(
-      doc(db, 'topics', topicId, 'cards', cardId)
+      doc(
+        db,
+        'topics',
+        topicId,
+        'cards',
+        cardId
+      )
     );
 
-    this.cardsCache.delete(topicId);
+    this.cardsCache.delete(
+      topicId
+    );
+  }
+
+  async deleteCards(
+    topicId: string,
+    cardIds: string[]
+  ): Promise<void> {
+
+    if (cardIds.length === 0) {
+      return;
+    }
+
+    const batch =
+      writeBatch(db);
+
+    for (const cardId of cardIds) {
+
+      batch.delete(
+        doc(
+          db,
+          'topics',
+          topicId,
+          'cards',
+          cardId
+        )
+      );
+    }
+
+    await batch.commit();
+
+    this.cardsCache.delete(
+      topicId
+    );
   }
 
   async setCardLearned(
@@ -218,50 +528,97 @@ export class DataService {
     cardId: string,
     learned: boolean
   ): Promise<void> {
+
     await updateDoc(
-      doc(db, 'topics', topicId, 'cards', cardId),
+      doc(
+        db,
+        'topics',
+        topicId,
+        'cards',
+        cardId
+      ),
       {
         learned
       }
     );
 
-    this.cardsCache.delete(topicId);
+    this.cardsCache.delete(
+      topicId
+    );
   }
 
+  // =========================================================
+  // QUIZ
+  // =========================================================
+
   async getQuizCount(): Promise<number> {
-    const userId = await this.getUserId();
 
-    const cachedCount = this.quizCountCache.get(userId);
+    const userId =
+      await this.getUserId();
 
-    if (cachedCount !== undefined) {
+    const cachedCount =
+      this.quizCountCache.get(
+        userId
+      );
+
+    if (
+      cachedCount !== undefined
+    ) {
       return cachedCount;
     }
 
-    const existingRequest = this.quizCountRequests.get(userId);
+    const existingRequest =
+      this.quizCountRequests.get(
+        userId
+      );
 
     if (existingRequest) {
       return existingRequest;
     }
 
-    const request = this.loadQuizCount(userId);
+    const request =
+      this.loadQuizCount(
+        userId
+      );
 
-    this.quizCountRequests.set(userId, request);
+    this.quizCountRequests.set(
+      userId,
+      request
+    );
 
     try {
+
       return await request;
+
     } finally {
-      this.quizCountRequests.delete(userId);
+
+      this.quizCountRequests.delete(
+        userId
+      );
     }
   }
 
-  private async loadQuizCount(userId: string): Promise<number> {
-    const snapshot = await getDocs(
-      collection(db, 'users', userId, 'quizAttempts')
+  private async loadQuizCount(
+    userId: string
+  ): Promise<number> {
+
+    const snapshot =
+      await getDocs(
+        collection(
+          db,
+          'users',
+          userId,
+          'quizAttempts'
+        )
+      );
+
+    const count =
+      snapshot.size;
+
+    this.quizCountCache.set(
+      userId,
+      count
     );
-
-    const count = snapshot.size;
-
-    this.quizCountCache.set(userId, count);
 
     return count;
   }
@@ -271,26 +628,39 @@ export class DataService {
     correctAnswers: number,
     totalQuestions: number
   ): Promise<void> {
-    const userId = await this.getUserId();
+
+    const userId =
+      await this.getUserId();
 
     await addDoc(
-      collection(db, 'users', userId, 'quizAttempts'),
+      collection(
+        db,
+        'users',
+        userId,
+        'quizAttempts'
+      ),
       {
         topicId,
         correctAnswers,
         totalQuestions,
-        createdAt: new Date()
+        createdAt: Timestamp.now()
       }
     );
 
-    this.quizCountCache.delete(userId);
+    this.quizCountCache.delete(
+      userId
+    );
   }
 
+ 
   clearCache(): void {
+
     this.topicsCache.clear();
     this.topicsRequests.clear();
+
     this.cardsCache.clear();
     this.cardsRequests.clear();
+
     this.quizCountCache.clear();
     this.quizCountRequests.clear();
   }

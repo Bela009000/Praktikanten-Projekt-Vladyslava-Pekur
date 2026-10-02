@@ -15,7 +15,6 @@
   opacity: var(--blob-opacity);
   z-index: 0;
   pointer-events: none;
-  filter: blur(60px);
 }
 
 .blob-1 {
@@ -141,7 +140,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
-  margin-bottom: 40px;
+  margin-bottom: 22px;
 }
 
 .action-tile {
@@ -188,6 +187,147 @@
   transform: rotate(-6deg) scale(1.1);
 }
 
+.action-title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.action-subtitle {
+  margin-top: -8px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.training-mode {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 40px;
+  padding: 22px 26px;
+
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(248, 245, 255, 0.78));
+
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+
+  border: 1px solid rgba(124, 58, 237, 0.16);
+  border-radius: 18px;
+
+  box-shadow:
+    0 8px 24px rgba(76, 29, 149, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+
+  text-decoration: none;
+  color: inherit;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.training-mode:hover .training-mode-icon {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(168, 85, 247, 0.38));
+
+  box-shadow:
+    0 8px 20px rgba(124, 58, 237, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+
+  transform: scale(1.04);
+}
+
+.training-mode-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+
+.training-mode-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.18), rgba(168, 85, 247, 0.28));
+
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 18px;
+
+  box-shadow:
+    0 6px 16px rgba(124, 58, 237, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+
+  transition:
+    transform 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+training-mode:hover .training-mode-icon svg {
+  transform: scale(1.08) rotate(-5deg);
+}
+
+.training-mode-icon svg {
+  width: 34px;
+  height: 34px;
+
+  color: var(--primary);
+  stroke-width: 2;
+
+  transition: transform 0.25s ease;
+}
+
+.training-mode-text {
+  min-width: 0;
+}
+
+.training-mode-title {
+  margin-bottom: 4px;
+  color: var(--primary-deep);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.training-mode-description {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.training-mode-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  flex-shrink: 0;
+
+  padding: 11px 18px;
+
+  background: linear-gradient(135deg, #7d47db, #a855f7);
+
+  color: white;
+  border-radius: 11px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  box-shadow: 0 5px 14px rgba(124, 58, 237, 0.2);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.training-mode:hover .training-mode-button {
+  box-shadow: 0 8px 18px rgba(124, 58, 237, 0.28);
+}
+
 .recent-section {
   margin-top: 10px;
 }
@@ -205,18 +345,25 @@
   flex-direction: column;
   justify-content: center;
   gap: 8px;
+
   background: var(--glass-bg-soft);
+
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
+
   border: 1px solid var(--glass-border);
   border-radius: 14px;
+
   box-shadow:
     0 6px 20px rgba(76, 29, 149, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
   color: var(--primary-deep);
   font-size: 16px;
   font-weight: 600;
+
   transition: 0.25s ease;
+
   text-decoration: none;
   cursor: pointer;
 }
@@ -283,6 +430,10 @@
     padding: 28px 10px;
   }
 
+  .training-mode {
+    padding: 20px;
+  }
+
   .recent-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -313,6 +464,21 @@
 
   .action-tile {
     padding: 25px 12px;
+  }
+
+  .training-mode {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 18px;
+    padding: 20px;
+  }
+
+  .training-mode-left {
+    align-items: flex-start;
+  }
+
+  .training-mode-button {
+    width: 100%;
   }
 
   .recent-grid {

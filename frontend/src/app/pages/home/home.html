@@ -5,15 +5,19 @@
 
     <main class="content">
 
+        <!-- Hero -->
         <div class="hero-section">
+
             <div class="welcome-box">
                 <h1>Willkommen, {{ username }}!</h1>
                 <p>Schön, dass du wieder da bist.</p>
             </div>
 
             <img src="/illustrations/education.svg" alt="" class="hero-illustration" />
+
         </div>
 
+        <!-- Statistiken -->
         <div class="stats-row">
 
             <div class="stat-box">
@@ -48,6 +52,7 @@
 
         </div>
 
+        <!-- Schnellzugriff -->
         <div class="quick-actions-header">
 
             <h2 class="section-title">
@@ -60,7 +65,9 @@
 
         <div class="quick-actions">
 
+            <!-- Meine Themen -->
             <a routerLink="/topics" class="action-tile">
+
                 <span class="action-icon">
                     <i data-lucide="playing-cards-fan"></i>
                 </span>
@@ -72,9 +79,12 @@
                 <div class="action-subtitle">
                     Alle Themen anzeigen
                 </div>
+
             </a>
 
+            <!-- Karteikarten -->
             <a routerLink="/my-cards" class="action-tile">
+
                 <span class="action-icon">
                     <i data-lucide="graduation-cap"></i>
                 </span>
@@ -86,9 +96,12 @@
                 <div class="action-subtitle">
                     Lernen starten
                 </div>
+
             </a>
 
+            <!-- Quiz -->
             <a routerLink="/quiz" class="action-tile">
+
                 <span class="action-icon">
                     <i data-lucide="brain"></i>
                 </span>
@@ -100,10 +113,41 @@
                 <div class="action-subtitle">
                     Wissen testen
                 </div>
+
             </a>
 
         </div>
 
+        <!-- Trainingsmodus -->
+        <a routerLink="/training" class="training-mode">
+
+            <div class="training-mode-left">
+
+                <div class="training-mode-icon">
+                    <i data-lucide="brain-circuit"></i>
+                </div>
+
+                <div class="training-mode-text">
+
+                    <div class="training-mode-title">
+                        Trainingsmodus
+                    </div>
+
+                    <div class="training-mode-description">
+                        Wissen Schritt für Schritt festigen
+                    </div>
+
+                </div>
+
+            </div>
+
+            <a class="training-mode-button" routerLink="/trainingsmodus">
+                Starten
+                <span>→</span>
+            </a>
+        </a>
+
+        <!-- Letzte Themen -->
         <div class="recent-section" *ngIf="recentTopics.length > 0">
 
             <h2 class="section-title">
@@ -113,6 +157,7 @@
             <div class="recent-grid">
 
                 <a class="recent-tile" *ngFor="let topic of recentTopics" [routerLink]="['/cards', topic.id]">
+
                     <div>
                         {{ topic.name }}
                     </div>
@@ -120,6 +165,7 @@
                     <div class="recent-tile-count">
                         {{ topic.cardCount }} Karten
                     </div>
+
                 </a>
 
             </div>
@@ -132,6 +178,7 @@
 
     </main>
 
+    <!-- Footer -->
     <footer class="footer">
         <span>© 2026 Lernkarten</span>
     </footer>

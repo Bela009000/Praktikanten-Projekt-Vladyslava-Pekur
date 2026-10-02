@@ -82,6 +82,7 @@
 
 .card-topic {
   width: 100%;
+  min-width: 0;
   padding: 28px;
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
@@ -95,7 +96,6 @@
     transform 0.2s ease,
     box-shadow 0.2s ease,
     border-color 0.2s ease;
-
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -103,7 +103,9 @@
 
 .card-topic:hover {
   transform: translateY(-4px);
-  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.14);
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   border-color: var(--accent);
 }
 
@@ -118,6 +120,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  min-width: 0;
 }
 
 .topic-avatar {
@@ -126,6 +129,7 @@
   justify-content: center;
   width: 48px;
   height: 48px;
+  min-width: 48px;
   border-radius: 50%;
   background: var(--accent);
   color: white;
@@ -181,30 +185,51 @@
 
 .card-actions {
   display: flex;
+  flex-direction: column;
   gap: 10px;
   margin-top: 0;
+  width: 100%;
+}
+
+.secondary-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
 }
 
 .learning-button,
+.mc-button,
 .continue-button {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 46px;
-  padding: 12px 14px;
+  padding: 12px 10px;
   border-radius: 10px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   text-align: center;
   text-decoration: none;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
   transition:
     background 0.2s ease,
     border-color 0.2s ease,
     color 0.2s ease,
     transform 0.2s ease;
+}
+
+.learning-button,
+.mc-button {
+  flex: 1;
+  min-width: 0;
+}
+
+.continue-button {
+  width: 100%;
 }
 
 .learning-button {
@@ -216,6 +241,20 @@
 .learning-button:hover {
   background: var(--menu-hover);
   border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.mc-button {
+  background: var(--accent-light);
+  color: var(--accent-dark);
+  border: 1px solid var(--input-border);
+}
+
+.mc-button:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: translateY(-1px);
 }
 
 .continue-button {
@@ -227,6 +266,7 @@
 .continue-button:hover {
   background: var(--accent-dark);
   border-color: var(--accent-dark);
+  transform: translateY(-1px);
 }
 
 .empty-state {
@@ -272,21 +312,27 @@
   transform: translateY(-2px);
 }
 
-@media (max-width: 950px) {
-  .my-cards-container {
-    padding: 25px 16px 40px;
-  }
-
-  .my-cards-title h1 {
-    font-size: 30px;
-  }
-
+@media (max-width: 1050px) {
   .cards-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .my-cards-container {
+    padding: 25px 20px 45px;
+  }
+}
+
+@media (max-width: 650px) {
+  .cards-list {
+    grid-template-columns: 1fr;
+  }
+
   .card-topic {
-    padding: 25px;
+    padding: 24px;
+  }
+
+  .topic-header {
+    gap: 12px;
   }
 
   .topic-header h2 {
@@ -296,19 +342,15 @@
   .progress-percent {
     font-size: 20px;
   }
-}
 
-@media (max-width: 650px) {
-  .cards-list {
-    grid-template-columns: 1fr;
-  }
-
-  .card-actions {
+  .secondary-actions {
     flex-direction: column;
   }
 
   .learning-button,
+  .mc-button,
   .continue-button {
     width: 100%;
+    flex: none;
   }
 }

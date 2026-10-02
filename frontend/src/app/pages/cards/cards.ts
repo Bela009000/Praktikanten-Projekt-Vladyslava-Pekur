@@ -82,6 +82,9 @@ export class Cards {
   get currentCard(): Card | undefined {
     return this.cards[this.currentIndex];
   }
+  get nextCardPreview(): Card | undefined {
+return this.cards[this.currentIndex + 1];
+}
 
   get learnedCount(): number {
     return this.allCards.filter(
