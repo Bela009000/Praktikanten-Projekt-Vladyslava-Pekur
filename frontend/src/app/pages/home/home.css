@@ -438,6 +438,17 @@ training-mode:hover .training-mode-icon svg {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+.training-mode-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.training-mode-icon img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
 
 @media (max-width: 600px) {
   .content {

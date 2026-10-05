@@ -11,6 +11,10 @@ import { MyCards } from './pages/my-cards/my-cards';
 import { authGuard } from './guards/auth-guard';
 import { Quiz } from './pages/quiz/quiz';
 import { Account } from './pages/account/account';
+import { MultipleChoice } from './pages/multiple-choice/multiple-choice';
+import { StudySession } from './pages/study-session/study-session';
+
+
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -33,5 +37,11 @@ export const routes: Routes = [
   
   { path: 'quiz', component: Quiz, canActivate: [authGuard] },
   
-  { path: 'account', component: Account, canActivate: [authGuard] }
+  { path: 'account', component: Account, canActivate: [authGuard] },
+
+  { path: 'multiple-choice/:id', component: MultipleChoice, canActivate: [authGuard] },
+
+  { path: 'study-session/:id', component: StudySession, canActivate: [authGuard] },
+  
+  { path: 'study-session', component: StudySession, canActivate: [authGuard] },
 ];

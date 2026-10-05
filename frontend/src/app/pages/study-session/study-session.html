@@ -1,0 +1,285 @@
+<div class="ss-page">
+
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <div class="ss-container">
+
+        <a routerLink="/my-cards" class="back-button">
+            ← Zurück zum Hauptmenü
+        </a>
+
+        <div class="ss-title">
+            <h1>Lernsession</h1>
+            <p>Wähle die Übungen, die du kombinieren möchtest.</p>
+        </div>
+
+        <div class="loading-state" *ngIf="isLoading">
+            Wird geladen...
+        </div>
+
+        <main *ngIf="!isLoading && !sessionStarted" class="ss-card">
+
+            <h2>Thema und Übungen auswählen</h2>
+
+            <select class="topic-select" [(ngModel)]="selectedTopicId" (ngModelChange)="onTopicChange()">
+                <option [ngValue]="null">Thema auswählen...</option>
+                <option *ngFor="let topic of topics" [ngValue]="topic.id">
+                    {{ topic.name }}
+                </option>
+            </select>
+
+            <div class="no-topics" *ngIf="topics.length === 0">
+                <p>Es gibt noch keine Themen mit mindestens 2 Lernkarten.</p>
+            </div>
+
+            <div class="loading-state" *ngIf="isLoadingCards">
+                Karten werden geladen...
+            </div>
+
+            <div class="mode-checkboxes" *ngIf="selectedTopicId !== null && !isLoadingCards">
+                <label class="mode-checkbox" *ngFor="let mode of availableModes"
+                    [class.checked]="selectedModes.has(mode.key)">
+                    <input type="checkbox" [checked]="selectedModes.has(mode.key)" (change)="toggleMode(mode.key)" />
+                    <span>{{ mode.label }}</span>
+                </label>
+            </div>
+
+            <label class="mode-checkbox" *ngIf="selectedTopicId !== null && !isLoadingCards"
+                [class.checked]="answerFirst">
+                <input type="checkbox" [checked]="answerFirst" (change)="toggleAnswerFirst()" />
+                <span>Antwort zuerst anzeigen</span>
+            </label>
+
+            <button type="button" class="start-button" [disabled]="!canStart" (click)="startSession()">
+                Session starten →
+            </button>
+
+        </main>
+
+        <main *ngIf="sessionStarted && !sessionFinished && currentPhase === 'lernmodus' && currentPhaseCard"
+            class="ss-card">
+            <div class="phase-header">
+                <span class="phase-tag">{{ phaseLabel }}</span>
+
+                <span class="phase-counter">
+                    {{ phaseCardIndex + 1 }} / {{ phaseCards.length }}
+                </span>
+            </div>
+
+            <div class="question-area">
+
+                <div class="question" *ngIf="!answerFirst">
+                    {{ currentPhaseCard.question }}
+                </div>
+
+                <div class="question" *ngIf="answerFirst">
+                    {{ currentPhaseCard.answer }}
+                </div>
+
+            </div>
+
+            <div class="answer-reveal" *ngIf="showLernAnswer">
+
+                <span *ngIf="!answerFirst">
+                    Antwort
+                </span>
+
+                <span *ngIf="answerFirst">
+                    Frage
+                </span>
+
+                <strong *ngIf="!answerFirst">
+                    {{ currentPhaseCard.answer }}
+                </strong>
+
+                <strong *ngIf="answerFirst">
+                    {{ currentPhaseCard.question }}
+                </strong>
+
+            </div>
+
+            <button type="button" class="reveal-button" *ngIf="!showLernAnswer" (click)="revealLernAnswer()">
+                {{ answerFirst ? 'Frage anzeigen' : 'Antwort anzeigen' }}
+            </button>
+
+            <div class="mark-buttons" *ngIf="showLernAnswer">
+                <button type="button" class="not-learned-button" (click)="markLern(false)">
+                    Noch lernen
+                </button>
+
+                <button type="button" class="learned-button" (click)="markLern(true)">
+                    Kann ich
+                </button>
+            </div>
+
+        </main>
+
+        <main *ngIf="sessionStarted && !sessionFinished && currentPhase === 'quiz' && currentPhaseCard" class="ss-card">
+
+            <div class="phase-header">
+                <span class="phase-tag">{{ phaseLabel }}</span>
+
+                <span class="phase-counter">
+                    {{ phaseCardIndex + 1 }} / {{ phaseCards.length }}
+                </span>
+            </div>
+
+            <div class="question-area">
+
+                <div class="question" *ngIf="!answerFirst">
+                    {{ currentPhaseCard.question }}
+                </div>
+
+                <div class="question" *ngIf="answerFirst">
+                    {{ currentPhaseCard.answer }}
+                </div>
+
+            </div>
+
+            <div class="answer-area" *ngIf="!quizShowResult">
+
+                <input type="text" [(ngModel)]="quizUserAnswer" placeholder="Deine Antwort eingeben..."
+                    (keyup.enter)="checkQuizAnswer()" />
+
+                <button type="button" class="reveal-button" [disabled]="quizUserAnswer.trim() === ''"
+                    (click)="checkQuizAnswer()">
+                    Antwort überprüfen
+                </button>
+
+            </div>
+
+            <div class="answer-reveal" *ngIf="quizShowResult">
+
+                <span>
+                    {{ quizIsCorrect ? 'Antwort' : 'Richtige Antwort' }}
+                </span>
+
+                <strong *ngIf="!answerFirst">
+                    {{ currentPhaseCard.answer }}
+                </strong>
+
+                <strong *ngIf="answerFirst">
+                    {{ currentPhaseCard.question }}
+                </strong>
+
+            </div>
+
+            <div class="result-banner" *ngIf="quizShowResult" [class.correct]="quizIsCorrect"
+                [class.wrong]="!quizIsCorrect">
+                {{ quizIsCorrect ? '✓ Richtig!' : '✕ Falsch' }}
+            </div>
+
+            <button type="button" class="reveal-button" *ngIf="quizShowResult" (click)="nextQuizCard()">
+                Weiter →
+            </button>
+
+        </main>
+
+        <main *ngIf="sessionStarted && !sessionFinished && currentPhase === 'mc' && currentPhaseCard" class="ss-card">
+
+            <div class="phase-header">
+                <span class="phase-tag">{{ phaseLabel }}</span>
+
+                <span class="phase-counter">
+                    {{ phaseCardIndex + 1 }} / {{ phaseCards.length }}
+                </span>
+            </div>
+
+            <div class="question-area">
+
+                <div class="question" *ngIf="!answerFirst">
+                    {{ currentPhaseCard.question }}
+                </div>
+
+                <div class="question" *ngIf="answerFirst">
+                    {{ currentPhaseCard.answer }}
+                </div>
+
+            </div>
+
+            <div class="options-grid">
+
+                <button type="button" class="option-button" *ngFor="let option of mcOptions"
+                    [class.correct]="mcAnswered && isCorrectMcOption(option)" [class.wrong]="
+                        mcAnswered &&
+                        mcSelected === option &&
+                        !isCorrectMcOption(option)
+                    " [disabled]="mcAnswered" (click)="selectMcOption(option)">
+                    {{ option }}
+                </button>
+
+            </div>
+
+            <button type="button" class="reveal-button" *ngIf="mcAnswered" (click)="nextMcCard()">
+                Weiter →
+            </button>
+
+        </main>
+
+        <main *ngIf="sessionStarted && !sessionFinished && currentPhase === 'memory'" class="ss-card">
+
+            <div class="phase-header">
+                <span class="phase-tag">{{ phaseLabel }}</span>
+
+                <span class="phase-counter">
+                    Runde {{ memoryBatchProgress }}
+                </span>
+            </div>
+
+            <div class="memory-grid">
+
+                <div class="memory-tile" *ngFor="let tile of memoryTiles"
+                    [class.flipped]="tile.isFlipped || tile.isMatched" [class.matched]="tile.isMatched"
+                    (click)="selectMemoryTile(tile)">
+
+                    <div class="memory-tile-inner">
+
+                        <div class="memory-tile-front"></div>
+
+                        <div class="memory-tile-back">
+                            {{ tile.text }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+        <main *ngIf="sessionFinished" class="ss-card result-card">
+
+            <h2>Session abgeschlossen!</h2>
+
+            <p class="result-text">
+                {{ passedCount }} von {{ allCards.length }}
+                Karten vollständig gemeistert
+            </p>
+
+            <div class="result-percent">
+                {{
+                allCards.length > 0
+                ? ((passedCount / allCards.length) * 100 | number:'1.0-0')
+                : 0
+                }}%
+            </div>
+
+            <div class="result-actions">
+
+                <button type="button" class="start-button" (click)="restart()">
+                    Neue Session starten
+                </button>
+
+                <a routerLink="/my-cards" class="selection-button">
+                    Zurück
+                </a>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>

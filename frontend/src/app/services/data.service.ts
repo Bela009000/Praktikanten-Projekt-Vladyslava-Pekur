@@ -9,7 +9,9 @@ import {
   query,
   where,
   writeBatch,
-  Timestamp
+  Timestamp,
+  orderBy,
+  limit
 } from 'firebase/firestore';
 
 import { db } from '../firebase.config';
@@ -27,7 +29,26 @@ export interface Card {
   answer: string;
   learned: boolean;
 }
+export interface StudySessionResult {
+  id: string;
+  topicId: string;
+  topicName: string;
+  passedCount: number;
+  totalCards: number;
+  percentage: number;
+  modes: string[];
+  createdAt: Timestamp;
+}
 
+export interface QuizAttemptResult {
+  id: string;
+  topicId: string;
+  topicName: string;
+  correctAnswers: number;
+  totalQuestions: number;
+  percentage: number;
+  createdAt: Timestamp;
+}
 @Injectable({
   providedIn: 'root'
 })
@@ -255,6 +276,102 @@ export class DataService {
       userId
     );
   }
+async saveStudySessionResult(
+  topicId: string,
+  topicName: string,
+  learnedCount: number,
+  totalCards: number,
+  modes: string[]
+): Promise<void> {
+  const userId = await this.getUserId();
+
+  const resultsRef = collection(
+    db,
+    'users',
+    userId,
+    'studySessionResults'
+  );
+
+  const existingQuery = query(
+    resultsRef,
+    where('topicId', '==', topicId)
+  );
+
+  const snapshot = await getDocs(existingQuery);
+
+  const percentage =
+    totalCards > 0
+      ? Math.min(
+          100,
+          Math.round(
+            (learnedCount / totalCards) * 100
+          )
+        )
+      : 0;
+
+  const data = {
+    topicId,
+    topicName,
+    passedCount: Math.min(learnedCount, totalCards),
+    totalCards,
+    percentage,
+    modes,
+    createdAt: Timestamp.now()
+  };
+
+  if (!snapshot.empty) {
+    await updateDoc(
+      snapshot.docs[0].ref,
+      data
+    );
+    return;
+  }
+
+  await addDoc(
+    resultsRef,
+    data
+  );
+}
+async getLastStudySessionResults(
+    limitCount = 3
+): Promise<StudySessionResult[]> {
+    const userId = await this.getUserId();
+
+    const resultsRef = collection(
+        db,
+        'users',
+        userId,
+        'studySessionResults'
+    );
+
+    const q = query(
+        resultsRef,
+        orderBy('createdAt', 'desc'),
+        limit(limitCount)
+    );
+
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map(docSnap => {
+        const data = docSnap.data();
+
+        return {
+            id: docSnap.id,
+            topicId: data['topicId'] || '',
+            topicName: data['topicName'] || '',
+            passedCount: data['passedCount'] || 0,
+            totalCards: data['totalCards'] || 0,
+            percentage: data['percentage'] || 0,
+            modes: Array.isArray(data['modes'])
+                ? data['modes']
+                : [],
+            createdAt:
+                data['createdAt'] instanceof Timestamp
+                    ? data['createdAt']
+                    : Timestamp.now()
+        };
+    });
+}
 
   // =========================================================
   // CARDS
@@ -664,4 +781,5 @@ export class DataService {
     this.quizCountCache.clear();
     this.quizCountRequests.clear();
   }
+  
 }

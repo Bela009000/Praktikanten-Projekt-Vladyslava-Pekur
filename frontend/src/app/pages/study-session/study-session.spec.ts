@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Trainingsmodus } from './trainingsmodus';
+import { StudySession } from './study-session';
 
-describe('Trainingsmodus', () => {
-  let component: Trainingsmodus;
-  let fixture: ComponentFixture<Trainingsmodus>;
+describe('StudySession', () => {
+  let component: StudySession;
+  let fixture: ComponentFixture<StudySession>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Trainingsmodus],
+      imports: [StudySession],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Trainingsmodus);
+    fixture = TestBed.createComponent(StudySession);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
