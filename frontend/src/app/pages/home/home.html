@@ -6,7 +6,7 @@
     <main class="content">
 
         <!-- Hero -->
-        <div class="hero-section">
+        <section class="hero-section">
 
             <div class="welcome-box">
                 <h1>Willkommen, {{ username }}!</h1>
@@ -15,16 +15,16 @@
 
             <img src="/illustrations/education.svg" alt="" class="hero-illustration" />
 
-        </div>
+        </section>
+
 
         <!-- Statistiken -->
-        <div class="stats-row">
+        <section class="stats-row">
 
             <div class="stat-box">
                 <div class="stat-number">
                     {{ topics.length }}
                 </div>
-
                 <div class="stat-label">
                     Themen
                 </div>
@@ -34,7 +34,6 @@
                 <div class="stat-number">
                     {{ totalCards }}
                 </div>
-
                 <div class="stat-label">
                     Karten
                 </div>
@@ -44,79 +43,87 @@
                 <div class="stat-number">
                     {{ quizCount }}
                 </div>
-
                 <div class="stat-label">
                     Quiz absolviert
                 </div>
             </div>
 
-        </div>
+        </section>
+
 
         <!-- Schnellzugriff -->
-        <div class="quick-actions-header">
+        <section class="quick-actions-section">
 
-            <h2 class="section-title">
-                Schnellzugriff
-            </h2>
+            <div class="quick-actions-header">
 
-            <img src="/illustrations/celebration.svg" alt="" class="celebration-illustration" />
+                <h2 class="section-title">
+                    Schnellzugriff
+                </h2>
 
-        </div>
+                <img src="/illustrations/celebration.svg" alt="" class="celebration-illustration" />
 
-        <div class="quick-actions">
+            </div>
 
-            <!-- Meine Themen -->
-            <a routerLink="/topics" class="action-tile">
 
-                <span class="action-icon">
-                    <i data-lucide="playing-cards-fan"></i>
-                </span>
+            <div class="quick-actions">
 
-                <div class="action-title">
-                    Meine Themen
-                </div>
+                <!-- Meine Themen -->
+                <a routerLink="/topics" class="action-tile">
 
-                <div class="action-subtitle">
-                    Alle Themen anzeigen
-                </div>
+                    <span class="action-icon">
+                        <i data-lucide="playing-cards"></i>
+                    </span>
 
-            </a>
+                    <div class="action-title">
+                        Meine Themen
+                    </div>
 
-            <!-- Karteikarten -->
-            <a routerLink="/my-cards" class="action-tile">
+                    <div class="action-subtitle">
+                        Alle Themen anzeigen
+                    </div>
 
-                <span class="action-icon">
-                    <i data-lucide="graduation-cap"></i>
-                </span>
+                </a>
 
-                <div class="action-title">
-                    Karteikarten lernen
-                </div>
 
-                <div class="action-subtitle">
-                    Lernen starten
-                </div>
+                <!-- Karteikarten -->
+                <a routerLink="/my-cards" class="action-tile">
 
-            </a>
+                    <span class="action-icon">
+                        <i data-lucide="graduation-cap"></i>
+                    </span>
 
-            <!-- Quiz -->
-            <a routerLink="/quiz" class="action-tile">
+                    <div class="action-title">
+                        Karteikarten lernen
+                    </div>
 
-                <span class="action-icon">
-                    <i data-lucide="brain"></i>
-                </span>
+                    <div class="action-subtitle">
+                        Lernen starten
+                    </div>
 
-                <div class="action-title">
-                    Quiz starten
-                </div>
+                </a>
 
-                <div class="action-subtitle">
-                    Wissen testen
-                </div>
 
-            </a>
+                <!-- Quiz -->
+                <a routerLink="/quiz" class="action-tile">
 
-        </div>
+                    <span class="action-icon">
+                        <i data-lucide="brain"></i>
+                    </span>
+
+                    <div class="action-title">
+                        Quiz starten
+                    </div>
+
+                    <div class="action-subtitle">
+                        Wissen testen
+                    </div>
+
+                </a>
+
+            </div>
+
+        </section>
+
 
         <!-- Trainingsmodus -->
         <a routerLink="/study-session" class="training-mode">
@@ -125,9 +132,10 @@
 
                 <div class="training-mode-icon">
 
-                    <img 3 src="/illustrations/open-book.svg" 4 alt="Open Book">
+                    <img src="/illustrations/open-book.svg" alt="Open Book" />
 
                 </div>
+
 
                 <div class="training-mode-text">
 
@@ -143,18 +151,73 @@
 
             </div>
 
+
             <span class="training-mode-button">
                 Starten
                 <span>→</span>
             </span>
+
         </a>
 
+
+        <!-- Letzte Lernsessions -->
+        <section class="sessions-section" *ngIf="lastStudySessionResults.length > 0">
+            <h2 class="section-title">
+                Letzte Lernsessions
+            </h2>
+
+            <div class="sessions-grid">
+                <a class="session-tile" *ngFor="let session of lastStudySessionResults"
+                    [routerLink]="['/study-session']" [queryParams]="{
+                topicId: session.topicId,
+                modes: session.modes.join(','),
+                continue: 'true'
+            }">
+                    <div class="session-tile-header">
+                        <div class="session-topic-name">
+                            {{ session.topicName }}
+                        </div>
+
+                        <div class="session-percent">
+                            {{ session.percentage }}%
+                        </div>
+                    </div>
+
+                    <div class="session-progress-bar">
+                        <div class="session-progress-fill" [style.width.%]="session.percentage"></div>
+                    </div>
+
+                    <div class="session-tile-footer">
+                        <span class="session-count">
+                            {{ session.passedCount }} /
+                            {{ session.totalCards }}
+                            Karten
+                        </span>
+
+                        <span class="session-date">
+                            {{ getSessionDate(session.createdAt) }}
+                        </span>
+                    </div>
+
+                    <div class="session-modes" *ngIf="session.modes.length > 0">
+                        <span class="session-mode-chip" *ngFor="let mode of session.modes">
+                            {{ getStudyModeLabel(mode) }}
+                        </span>
+                    </div>
+
+                    <div class="session-continue">
+                        Weiterlernen →
+                    </div>
+                </a>
+            </div>
+        </section>
         <!-- Letzte Themen -->
-        <div class="recent-section" *ngIf="recentTopics.length > 0">
+        <section class="recent-section" *ngIf="recentTopics.length > 0">
 
             <h2 class="section-title">
                 Letzte Themen
             </h2>
+
 
             <div class="recent-grid">
 
@@ -172,13 +235,15 @@
 
             </div>
 
+
             <a routerLink="/topics" class="see-all-link">
                 Alle anzeigen →
             </a>
 
-        </div>
+        </section>
 
     </main>
+
 
     <!-- Footer -->
     <footer class="footer">
