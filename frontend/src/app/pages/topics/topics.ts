@@ -13,107 +13,205 @@ import { DataService, Topic } from '../../services/data.service';
 export class Topics {
 
   topics: Topic[] = [];
-  newTopicName = "";
+  newTopicName = '';
   wordCounts: { [topicId: string]: number } = {};
-  searchTerm = "";
+  searchTerm = '';
+
   isLoading = true;
   isAddingTopic = false;
+  isDeletingTopic = false;
 
   constructor(
     private dataService: DataService,
     private changeDetectorRef: ChangeDetectorRef
   ) {}
 
-  async ngOnInit() {
+  async ngOnInit(): Promise<void> {
     await this.loadTopics();
   }
 
-  async loadTopics() {
+  async loadTopics(): Promise<void> {
+
     this.isLoading = true;
 
     try {
-      const topics = await this.dataService.getTopics();
 
-      this.topics = topics;
-      this.wordCounts = {};
-      this.isLoading = false;
+      const topics =
+        await this.dataService.getTopics();
+
+      this.topics =
+        topics;
+
+      this.wordCounts =
+        {};
+
+      this.isLoading =
+        false;
 
       this.changeDetectorRef.detectChanges();
 
       await Promise.all(
-        this.topics.map(async topic => {
-          try {
-            const cards = await this.dataService.getCards(topic.id);
-            this.wordCounts[topic.id] = cards.length;
-          } catch (error) {
-            console.error(error);
-            this.wordCounts[topic.id] = 0;
+        this.topics.map(
+          async topic => {
+
+            try {
+
+              const cards =
+                await this.dataService.getCards(
+                  topic.id
+                );
+
+              this.wordCounts[topic.id] =
+                cards.length;
+
+            } catch (error) {
+
+              console.error(
+                'LOAD CARD COUNT ERROR:',
+                error
+              );
+
+              this.wordCounts[topic.id] =
+                0;
+            }
           }
-        })
+        )
       );
 
       this.changeDetectorRef.detectChanges();
 
     } catch (error) {
-      console.error('TOPICS ERROR:', error);
-      this.isLoading = false;
+
+      console.error(
+        'TOPICS ERROR:',
+        error
+      );
+
+      this.isLoading =
+        false;
+
       this.changeDetectorRef.detectChanges();
     }
   }
 
-  getWordCount(topicId: string): number {
-    return this.wordCounts[topicId] || 0;
-  }
+  getWordCount(
+    topicId: string
+  ): number {
 
-  get filteredTopics(): Topic[] {
-    const term = this.searchTerm.trim().toLowerCase();
-
-    if (term === '') {
-      return this.topics;
-    }
-
-    return this.topics.filter(topic =>
-      topic.name.toLowerCase().includes(term)
+    return (
+      this.wordCounts[topicId] ||
+      0
     );
   }
 
-  startAddTopic() {
-    this.isAddingTopic = true;
+  get filteredTopics(): Topic[] {
+
+    const term =
+      this.searchTerm
+        .trim()
+        .toLowerCase();
+
+    if (!term) {
+      return this.topics;
+    }
+
+    return this.topics.filter(
+      topic =>
+        topic.name
+          .toLowerCase()
+          .includes(term)
+    );
   }
 
-  cancelAddTopic() {
-    this.isAddingTopic = false;
-    this.newTopicName = '';
+  startAddTopic(): void {
+
+    if (
+      this.isAddingTopic ||
+      this.isDeletingTopic
+    ) {
+      return;
+    }
+
+    this.isAddingTopic =
+      true;
   }
 
-  async addTopic() {
-    const name = this.newTopicName.trim();
+  cancelAddTopic(): void {
 
-    if (name === '') {
+    this.isAddingTopic =
+      false;
+
+    this.newTopicName =
+      '';
+  }
+
+  async addTopic(): Promise<void> {
+
+    if (
+      this.isAddingTopic === false ||
+      this.isDeletingTopic
+    ) {
+      return;
+    }
+
+    const name =
+      this.newTopicName.trim();
+
+    if (!name) {
       return;
     }
 
     try {
-      await this.dataService.addTopic(name);
 
-      this.newTopicName = '';
-      this.isAddingTopic = false;
+      await this.dataService.addTopic(
+        name
+      );
 
-      await this.loadTopics();
+      this.newTopicName =
+        '';
 
-    } catch (error) {
-      console.error('ADD TOPIC ERROR:', error);
-    }
-  }
-
-  async deleteTopic(id: string) {
-    try {
-      await this.dataService.deleteTopic(id);
+      this.isAddingTopic =
+        false;
 
       await this.loadTopics();
 
     } catch (error) {
-      console.error('DELETE TOPIC ERROR:', error);
+
+      console.error(
+        'ADD TOPIC ERROR:',
+        error
+      );
     }
   }
+
+ async deleteTopic(id: string): Promise<void> {
+  if (this.isDeletingTopic) {
+    return;
+  }
+
+  this.isDeletingTopic = true;
+  this.changeDetectorRef.detectChanges();
+
+  try {
+    await this.dataService.deleteTopic(id);
+
+    this.topics = this.topics.filter(
+      topic => topic.id !== id
+    );
+
+    delete this.wordCounts[id];
+
+    this.changeDetectorRef.detectChanges();
+
+  } catch (error) {
+    console.error(
+      'DELETE TOPIC ERROR:',
+      error
+    );
+
+  } finally {
+    this.isDeletingTopic = false;
+    this.changeDetectorRef.detectChanges();
+  }
+}
 }

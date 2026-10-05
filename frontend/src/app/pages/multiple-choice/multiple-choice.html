@@ -1,0 +1,84 @@
+<div class="mc-page">
+
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <div class="mc-container">
+
+        <a routerLink="/my-cards" class="back-button">
+            ← Zurück zum Hauptmenü
+        </a>
+
+        <div class="mc-title">
+            <h1>Multiple Choice</h1>
+            <p>Wähle die richtige Antwort aus.</p>
+        </div>
+
+        <div class="loading-state" *ngIf="isLoading">
+            Fragen werden geladen...
+        </div>
+
+        <div class="empty-state" *ngIf="!isLoading && questions.length === 0">
+            <h2>Nicht genug Karten</h2>
+            <p>Für diesen Modus werden mindestens 2 Karteikarten benötigt.</p>
+        </div>
+
+        <main *ngIf="!isLoading && !isFinished && currentQuestion" class="mc-card">
+
+            <div class="mc-header">
+                <span class="question-counter">{{ currentIndex + 1 }} / {{ questions.length }}</span>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="progress"></div>
+            </div>
+
+            <div class="question-area">
+                <div class="question">{{ currentQuestion.card.question }}</div>
+            </div>
+
+            <div class="options-grid">
+                <button
+                    type="button"
+                    class="option-button"
+                    *ngFor="let option of currentQuestion.options"
+                    [class.selected]="selectedOption === option"
+                    [class.correct]="isAnswered && isCorrectOption(option)"
+                    [class.wrong]="isAnswered && selectedOption === option && !isCorrectOption(option)"
+                    [disabled]="isAnswered"
+                    (click)="selectOption(option)">
+                    {{ option }}
+                </button>
+            </div>
+
+            <button
+                type="button"
+                class="next-button"
+                *ngIf="isAnswered"
+                (click)="nextQuestion()">
+                {{ currentIndex < questions.length - 1 ? 'Nächste Frage →' : 'Ergebnis anzeigen →' }}
+            </button>
+
+        </main>
+
+        <main *ngIf="isFinished" class="result-card">
+
+            <h2>Geschafft!</h2>
+            <p class="result-text">{{ correctAnswers }} von {{ questions.length }} richtig beantwortet</p>
+
+            <div class="result-percent">{{ resultPercent }}%</div>
+
+            <div class="result-progress">
+                <div class="result-progress-fill" [style.width.%]="resultPercent"></div>
+            </div>
+
+            <div class="result-actions">
+                <button type="button" class="restart-button" (click)="restart()">Nochmal starten</button>
+                <a routerLink="/my-cards" class="selection-button">Zurück</a>
+            </div>
+
+        </main>
+
+    </div>
+
+</div>

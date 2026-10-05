@@ -3,11 +3,8 @@
     <div class="account-page-header">
 
         <button type="button" class="back-button" (click)="goBack()">
-
             <i data-lucide="arrow-left"></i>
-
             <span>Zurück</span>
-
         </button>
 
         <h1>Mein Account</h1>
@@ -17,47 +14,63 @@
 
     <div class="account-card">
 
+        <!-- AVATAR -->
+
         <section class="avatar-section">
 
             <div class="large-avatar">
+
                 <img *ngIf="photoURL" [src]="photoURL" alt="Avatar" />
 
                 <span *ngIf="!photoURL">
                     {{ username.charAt(0).toUpperCase() }}
                 </span>
+
             </div>
+
 
             <h2>{{ username }}</h2>
 
+
             <div class="avatar-actions">
 
-                <button type="button" class="secondary-button" (click)="changeAvatar()">
+                <button type="button" class="secondary-button" (click)="changeAvatar()"
+                    [disabled]="loading || avatarLoading">
                     <i data-lucide="camera"></i>
                     <span>Avatar ändern</span>
                 </button>
 
-                <button *ngIf="photoURL" type="button" class="delete-avatar-button" (click)="deleteAvatar()">
+
+                <button *ngIf="photoURL" type="button" class="delete-avatar-button" (click)="deleteAvatar()"
+                    [disabled]="loading || avatarLoading">
                     <i data-lucide="trash-2"></i>
                     <span>Avatar löschen</span>
                 </button>
 
             </div>
 
+
             <div class="avatar-paste-field" tabindex="0" (paste)="pasteAvatar($event)">
                 <span>Bild hier einfügen</span>
                 <small>Ctrl + V</small>
             </div>
 
+
             <div class="form-message" *ngIf="avatarMessage">
                 {{ avatarMessage }}
             </div>
-            <button type="button" class="secondary-button refresh-button" (click)="refreshUserData()">
+
+
+            <button type="button" class="secondary-button refresh-button" (click)="refreshUserData()"
+                [disabled]="loading || avatarLoading">
                 <i data-lucide="refresh-cw"></i>
                 <span>Daten aktualisieren</span>
             </button>
 
         </section>
 
+
+        <!-- PERSONAL DATA -->
 
         <section class="account-section">
 
@@ -80,30 +93,44 @@
 
             <div class="section-actions">
 
-                <button type="button" class="primary-button" (click)="saveUsername()">
-
+                <button type="button" class="primary-button" (click)="saveUsername()" [disabled]="loading">
                     Namen speichern
-
                 </button>
 
             </div>
 
 
             <div class="form-message" *ngIf="usernameMessage">
-
                 {{ usernameMessage }}
-
             </div>
 
         </section>
 
 
+        <!-- PASSWORD -->
+
         <section class="account-section">
 
-            <h3>Passwort</h3>
+            <h3>Passwort ändern</h3>
 
             <div class="section-divider"></div>
 
+
+            <!-- CURRENT PASSWORD -->
+
+            <div class="form-group">
+
+                <label for="currentPassword">
+                    Aktuelles Passwort
+                </label>
+
+                <input id="currentPassword" name="currentPassword" type="password" [(ngModel)]="currentPassword"
+                    autocomplete="current-password" placeholder="Aktuelles Passwort" />
+
+            </div>
+
+
+            <!-- NEW PASSWORD -->
 
             <div class="form-group">
 
@@ -112,38 +139,37 @@
                 </label>
 
                 <input id="newPassword" name="newPassword" type="password" [(ngModel)]="newPassword"
-                    autocomplete="new-password" />
+                    autocomplete="new-password" placeholder="Neues Passwort" />
 
             </div>
 
 
+            <!-- CONFIRM PASSWORD -->
+
             <div class="form-group">
 
                 <label for="confirmPassword">
-                    Passwort bestätigen
+                    Neues Passwort bestätigen
                 </label>
 
                 <input id="confirmPassword" name="confirmPassword" type="password" [(ngModel)]="confirmPassword"
-                    autocomplete="new-password" />
+                    autocomplete="new-password" placeholder="Neues Passwort bestätigen" />
 
             </div>
 
 
             <div class="section-actions">
 
-                <button type="button" class="primary-button" (click)="changePassword()">
-
+                <button type="button" class="primary-button" (click)="changePassword()"
+                    [disabled]="loading || avatarLoading">
                     Passwort ändern
-
                 </button>
 
             </div>
 
 
             <div class="form-message" *ngIf="passwordMessage">
-
                 {{ passwordMessage }}
-
             </div>
 
         </section>

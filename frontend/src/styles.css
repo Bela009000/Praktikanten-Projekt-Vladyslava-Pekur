@@ -1,3 +1,68 @@
+:root {
+  --bg-gradient: linear-gradient(135deg, #faf7ff, #f5f3ff, #ffffff);
+  --card-bg: #ffffff;
+  --text-primary: #4c1d95;
+  --text-heading: #5b21b6;
+  --text-muted: #9ca3af;
+  --border-color: #ede9fe;
+  --input-border: #d8b4fe;
+  --accent: #7c3aed;
+  --accent-dark: #6d28d9;
+  --accent-light: #f5f3ff;
+  --topbar-bg: rgba(161, 106, 255, 0.9);
+  --menu-hover: #f5f0ff;
+  --divider-color: #eee8ff;
+  --avatar-bg: #9b63f5;
+  --bg-1: #faf7ff;
+  --bg-2: #f5f3ff;
+  --bg-3: #ffffff;
+  --primary: #7c3aed;
+  --primary-deep: #6d47d7;
+  --primary-muted: #b0b0b0;
+  --text-dark: #4c1d95;
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-bg-soft: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-blur: 10px;
+  --blob-opacity: 0.35;
+  --illustration-glow: none;
+  --card-shadow: rgba(0, 0, 0, 0.12);
+  --tile-front-start: #a78bfa;
+  --tile-front-end: #bb9dfc;
+}
+
+html.dark-theme {
+  --bg-gradient: linear-gradient(135deg, #171522, #211c31, #15131e);
+  --card-bg: #2c2442aa;
+  --text-primary: #eeeaff;
+  --text-heading: #f4f1ff;
+  --text-muted: #aaa2c2;
+  --border-color: #38285b;
+  --input-border: #8575a4;
+  --accent: #7f66cd;
+  --accent-dark: #8b5cf6;
+  --accent-light: #3e305e;
+  --topbar-bg: rgba(47, 37, 70, 0.324);
+  --menu-hover: #332a46;
+  --divider-color: #3b334d;
+  --avatar-bg: #695694;
+  --bg-1: #171522;
+  --bg-2: #211c31;
+  --bg-3: #15131e;
+  --primary: #a78bfa;
+  --primary-deep: #ddd5f5;
+  --primary-muted: #aaa2c2;
+  --text-dark: #eeeaff;
+  --glass-bg: rgba(48, 40, 67, 0.72);
+  --glass-bg-soft: rgba(48, 40, 67, 0.5);
+  --glass-border: rgba(196, 181, 253, 0.18);
+  --glass-blur: 16px;
+  --blob-opacity: 0.4;
+  --illustration-glow: drop-shadow(0 0 35px rgba(167, 139, 250, 0.25));
+  --card-shadow: #504c533a;
+  --tile-front-start: var(--accent);
+  --tile-front-end: var(--accent-dark);
+}
 * {
   box-sizing: border-box;
 }
@@ -8,5 +73,14 @@ body {
   min-height: 100%;
   font-family: Arial, sans-serif;
   color: #222;
-  background: #f5f5f5;
+  background: var(--bg-1);
+}
+body {
+  min-height: 100vh;
+}
+
+app-root {
+  display: block;
+  min-height: 100vh;
+  background: var(--bg-gradient);
 }

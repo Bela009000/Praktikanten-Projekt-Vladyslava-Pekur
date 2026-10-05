@@ -53,13 +53,19 @@
 
                 <div class="card-actions">
 
-                    <a [routerLink]="['/lernmodus', topic.id]" class="learning-button">
-                        Lernmodus
-                    </a>
-
                     <a [routerLink]="['/cards', topic.id]" class="continue-button">
                         {{ topic.progress === 100 ? 'Wiederholen →' : 'Weiterlernen →' }}
                     </a>
+
+                    <div class="secondary-actions">
+                        <a [routerLink]="['/lernmodus', topic.id]" class="learning-button">
+                            Lernmodus
+                        </a>
+
+                        <a [routerLink]="['/multiple-choice', topic.id]" class="mc-button">
+                            Multiple Choice
+                        </a>
+                    </div>
 
                 </div>
 

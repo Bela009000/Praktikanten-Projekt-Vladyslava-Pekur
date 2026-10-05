@@ -95,14 +95,18 @@ export class MemoryGame implements OnInit, OnDestroy {
     this.flippedTiles = [];
 
     this.startTimer();
+    this.changeDetectorRef.detectChanges();
+
   }
 
   private startTimer() {
-    this.stopTimer();
+     this.stopTimer();
     this.timerHandle = setInterval(() => {
       this.elapsedSeconds++;
+      this.changeDetectorRef.detectChanges();
     }, 1000);
   }
+  
 
   private stopTimer() {
     if (this.timerHandle) {
@@ -154,6 +158,7 @@ export class MemoryGame implements OnInit, OnDestroy {
   private finishGame() {
     this.isFinished = true;
     this.stopTimer();
+    this.changeDetectorRef.detectChanges();
   }
 
   playAgain() {
