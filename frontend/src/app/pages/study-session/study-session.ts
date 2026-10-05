@@ -85,9 +85,11 @@ export class StudySession {
 
   private nextTileId = 0;
 
-  private passedModesByCard = new Map<string, Set<ModeKey>>();
+  private passedModesByCard =
+    new Map<string, Set<ModeKey>>();
 
-  private triedModesByCard = new Map<string, Set<ModeKey>>();
+  private triedModesByCard =
+    new Map<string, Set<ModeKey>>();
 
   private continueSession = false;
 
@@ -108,57 +110,78 @@ export class StudySession {
       this.route.snapshot.queryParamMap.get('continue') === 'true';
 
     if (modesParam) {
-      const modes = modesParam
-        .split(',')
-        .filter(
-          (mode): mode is ModeKey =>
-            [
-              'lernmodus',
-              'quiz',
-              'memory',
-              'mc'
-            ].includes(mode)
-        );
+      const modes =
+        modesParam
+          .split(',')
+          .filter(
+            (mode): mode is ModeKey =>
+              [
+                'lernmodus',
+                'quiz',
+                'memory',
+                'mc'
+              ].includes(mode)
+          );
 
       if (modes.length > 0) {
-        this.selectedModes = new Set<ModeKey>(modes);
+        this.selectedModes =
+          new Set<ModeKey>(modes);
       }
     }
 
     try {
-      const allTopics = await this.dataService.getTopics();
+      const allTopics =
+        await this.dataService.getTopics();
 
-      const topicResults = await Promise.all(
-        allTopics.map(async topic => {
-          const cards = await this.dataService.getCards(topic.id);
-          return cards.length >= 2 ? topic : null;
-        })
-      );
+      const topicResults =
+        await Promise.all(
+          allTopics.map(
+            async topic => {
+              const cards =
+                await this.dataService.getCards(
+                  topic.id
+                );
 
-      this.topics = topicResults.filter(
-        (topic): topic is Topic => topic !== null
-      );
+              return cards.length >= 2
+                ? topic
+                : null;
+            }
+          )
+        );
+
+      this.topics =
+        topicResults.filter(
+          (topic): topic is Topic =>
+            topic !== null
+        );
 
       if (topicId) {
-        const topicExists = this.topics.some(
-          topic => topic.id === topicId
-        );
+        const topicExists =
+          this.topics.some(
+            topic =>
+              topic.id === topicId
+          );
 
         if (topicExists) {
           this.selectedTopicId = topicId;
 
-          const topic = this.topics.find(
-            topic => topic.id === topicId
-          );
+          const topic =
+            this.topics.find(
+              topic =>
+                topic.id === topicId
+            );
 
-          this.topicName = topic?.name || '';
+          this.topicName =
+            topic?.name || '';
 
           await this.loadCards();
         }
       }
-
     } catch (error) {
-      console.error('STUDY SESSION LOAD TOPICS ERROR:', error);
+      console.error(
+        'STUDY SESSION LOAD TOPICS ERROR:',
+        error
+      );
     } finally {
       this.isLoading = false;
       this.changeDetectorRef.detectChanges();
@@ -187,22 +210,32 @@ export class StudySession {
     this.changeDetectorRef.detectChanges();
 
     try {
-      const cards = await this.dataService.getCards(
-        this.selectedTopicId
-      );
+      const cards =
+        await this.dataService.getCards(
+          this.selectedTopicId
+        );
 
-      this.allCards = this.continueSession
-        ? cards.filter(card => !card.learned)
-        : cards;
+      this.allCards =
+        this.continueSession
+          ? cards.filter(
+              card => !card.learned
+            )
+          : cards;
 
-      const topic = this.topics.find(
-        topic => topic.id === this.selectedTopicId
-      );
+      const topic =
+        this.topics.find(
+          topic =>
+            topic.id === this.selectedTopicId
+        );
 
-      this.topicName = topic?.name || '';
-
+      this.topicName =
+        topic?.name || '';
     } catch (error) {
-      console.error('STUDY SESSION LOAD CARDS ERROR:', error);
+      console.error(
+        'STUDY SESSION LOAD CARDS ERROR:',
+        error
+      );
+
       this.allCards = [];
     } finally {
       this.isLoadingCards = false;
@@ -231,13 +264,17 @@ export class StudySession {
   }
 
   get currentPhaseCard(): Card | undefined {
-    return this.allCards[this.currentCardIndex];
+    return this.allCards[
+      this.currentCardIndex
+    ];
   }
 
   get phaseLabel(): string {
-    const mode = this.availableModes.find(
-      item => item.key === this.currentMode
-    );
+    const mode =
+      this.availableModes.find(
+        item =>
+          item.key === this.currentMode
+      );
 
     return mode?.label || '';
   }
@@ -253,7 +290,7 @@ export class StudySession {
     this.sessionStarted = true;
     this.sessionFinished = false;
 
-    this.answerFirst = false;
+    this.showLernAnswer = false;
 
     this.passedModesByCard.clear();
     this.triedModesByCard.clear();
@@ -274,7 +311,8 @@ export class StudySession {
   }
 
   private startCurrentCard() {
-    const card = this.currentPhaseCard;
+    const card =
+      this.currentPhaseCard;
 
     if (!card) {
       this.finishSession();
@@ -283,7 +321,9 @@ export class StudySession {
 
     this.currentCardModes =
       this.shuffle(
-        Array.from(this.selectedModes)
+        Array.from(
+          this.selectedModes
+        )
       );
 
     this.currentMode = null;
@@ -295,7 +335,8 @@ export class StudySession {
   }
 
   private startNextModeForCurrentCard() {
-    const card = this.currentPhaseCard;
+    const card =
+      this.currentPhaseCard;
 
     if (!card) {
       this.finishSession();
@@ -303,12 +344,15 @@ export class StudySession {
     }
 
     const triedModes =
-      this.triedModesByCard.get(card.id) ??
+      this.triedModesByCard.get(
+        card.id
+      ) ??
       new Set<ModeKey>();
 
     const remainingModes =
       this.currentCardModes.filter(
-        mode => !triedModes.has(mode)
+        mode =>
+          !triedModes.has(mode)
       );
 
     if (remainingModes.length === 0) {
@@ -319,7 +363,8 @@ export class StudySession {
     this.currentMode =
       remainingModes[
         Math.floor(
-          Math.random() * remainingModes.length
+          Math.random() *
+          remainingModes.length
         )
       ];
 
@@ -337,7 +382,6 @@ export class StudySession {
   }
 
   private resetCurrentMode() {
-    this.answerFirst = false;
     this.showLernAnswer = false;
 
     this.quizUserAnswer = '';
@@ -363,20 +407,42 @@ export class StudySession {
   }
 
   toggleAnswerFirst(): void {
-    this.answerFirst = !this.answerFirst;
+    this.answerFirst =
+      !this.answerFirst;
+
     this.showLernAnswer = false;
+
+    if (
+      this.sessionStarted &&
+      !this.sessionFinished &&
+      this.currentMode === 'mc'
+    ) {
+      this.setupMcOptions();
+      this.mcSelected = null;
+      this.mcAnswered = false;
+    }
+
     this.changeDetectorRef.detectChanges();
   }
 
   markLern(pass: boolean): void {
-    const card = this.currentPhaseCard;
-    const mode = this.currentMode;
+    const card =
+      this.currentPhaseCard;
 
-    if (!card || mode !== 'lernmodus') {
+    const mode =
+      this.currentMode;
+
+    if (
+      !card ||
+      mode !== 'lernmodus'
+    ) {
       return;
     }
 
-    this.markModeTried(card.id, mode);
+    this.markModeTried(
+      card.id,
+      mode
+    );
 
     if (pass) {
       this.markCurrentModePassed();
@@ -386,7 +452,8 @@ export class StudySession {
   }
 
   checkQuizAnswer() {
-    const card = this.currentPhaseCard;
+    const card =
+      this.currentPhaseCard;
 
     if (
       !card ||
@@ -395,14 +462,21 @@ export class StudySession {
       return;
     }
 
-    const userAnswer =
-      this.normalize(this.quizUserAnswer);
-
     const correctAnswer =
-      this.normalize(card.answer);
+      this.answerFirst
+        ? card.question
+        : card.answer;
+
+    const userAnswer =
+      this.normalize(
+        this.quizUserAnswer
+      );
 
     this.quizIsCorrect =
-      userAnswer === correctAnswer;
+      userAnswer ===
+      this.normalize(
+        correctAnswer
+      );
 
     this.quizShowResult = true;
 
@@ -414,12 +488,23 @@ export class StudySession {
       return;
     }
 
-    const card = this.currentPhaseCard;
-    const mode = this.currentMode;
+    const card =
+      this.currentPhaseCard;
 
-    if (card && mode) {
-      this.markModeTried(card.id, mode);
+    const mode =
+      this.currentMode;
+
+    if (
+      !card ||
+      mode !== 'quiz'
+    ) {
+      return;
     }
+
+    this.markModeTried(
+      card.id,
+      mode
+    );
 
     if (this.quizIsCorrect) {
       this.markCurrentModePassed();
@@ -433,7 +518,8 @@ export class StudySession {
       return;
     }
 
-    const card = this.currentPhaseCard;
+    const card =
+      this.currentPhaseCard;
 
     if (!card) {
       return;
@@ -450,57 +536,99 @@ export class StudySession {
       return;
     }
 
-    const card = this.currentPhaseCard;
-    const mode = this.currentMode;
+    const card =
+      this.currentPhaseCard;
 
-    if (card && mode) {
-      this.markModeTried(card.id, mode);
-    }
+    const mode =
+      this.currentMode;
 
     if (
-      this.mcSelected ===
-      this.currentPhaseCard?.answer
+      !card ||
+      mode !== 'mc'
     ) {
+      return;
+    }
+
+    const correctAnswer =
+      this.answerFirst
+        ? card.question
+        : card.answer;
+
+    const isCorrect =
+      this.mcSelected === correctAnswer;
+
+    this.markModeTried(
+      card.id,
+      mode
+    );
+
+    if (isCorrect) {
       this.markCurrentModePassed();
     } else {
       this.startNextModeForCurrentCard();
     }
   }
 
-  isCorrectMcOption(option: string): boolean {
-    return (
-      option ===
-      this.currentPhaseCard?.answer
-    );
+  isCorrectMcOption(
+    option: string
+  ): boolean {
+    const card =
+      this.currentPhaseCard;
+
+    if (!card) {
+      return false;
+    }
+
+    const correctAnswer =
+      this.answerFirst
+        ? card.question
+        : card.answer;
+
+    return option === correctAnswer;
   }
 
   private setupMcOptions() {
-    const card = this.currentPhaseCard;
+    const card =
+      this.currentPhaseCard;
 
     if (!card) {
       return;
     }
 
+    const correctAnswer =
+      this.answerFirst
+        ? card.question
+        : card.answer;
+
     const wrongAnswers =
       this.shuffle(
         this.allCards
           .filter(
-            current => current.id !== card.id
+            current =>
+              current.id !== card.id
           )
-          .map(current => current.answer)
+          .map(
+            current =>
+              this.answerFirst
+                ? current.question
+                : current.answer
+          )
           .filter(
-            answer => answer !== card.answer
+            answer =>
+              answer !== correctAnswer
           )
       ).slice(0, 3);
 
-    this.mcOptions = this.shuffle([
-      card.answer,
-      ...wrongAnswers
-    ]);
+    this.mcOptions =
+      this.shuffle([
+        correctAnswer,
+        ...wrongAnswers
+      ]);
   }
 
   private setupMemoryPhase() {
-    const card = this.currentPhaseCard;
+    const card =
+      this.currentPhaseCard;
 
     if (!card) {
       return;
@@ -508,14 +636,16 @@ export class StudySession {
 
     const tiles: MemoryTile[] = [
       {
-        tileId: this.nextTileId++,
+        tileId:
+          this.nextTileId++,
         cardId: card.id,
         text: card.question,
         isFlipped: false,
         isMatched: false
       },
       {
-        tileId: this.nextTileId++,
+        tileId:
+          this.nextTileId++,
         cardId: card.id,
         text: card.answer,
         isFlipped: false,
@@ -523,14 +653,18 @@ export class StudySession {
       }
     ];
 
-    this.memoryTiles = this.shuffle(tiles);
+    this.memoryTiles =
+      this.shuffle(tiles);
+
     this.memoryFlipped = [];
     this.memoryBusy = false;
 
     this.changeDetectorRef.detectChanges();
   }
 
-  selectMemoryTile(tile: MemoryTile) {
+  selectMemoryTile(
+    tile: MemoryTile
+  ) {
     if (
       this.memoryBusy ||
       tile.isFlipped ||
@@ -544,16 +678,21 @@ export class StudySession {
 
     this.changeDetectorRef.detectChanges();
 
-    if (this.memoryFlipped.length !== 2) {
+    if (
+      this.memoryFlipped.length !== 2
+    ) {
       return;
     }
 
     this.memoryBusy = true;
 
-    const [first, second] =
-      this.memoryFlipped;
+    const [
+      first,
+      second
+    ] = this.memoryFlipped;
 
-    const card = this.currentPhaseCard;
+    const card =
+      this.currentPhaseCard;
 
     if (!card) {
       return;
@@ -589,7 +728,6 @@ export class StudySession {
 
         this.changeDetectorRef.detectChanges();
       }, 500);
-
     } else {
       setTimeout(() => {
         first.isFlipped = false;
@@ -615,7 +753,9 @@ export class StudySession {
     mode: ModeKey
   ) {
     const triedModes =
-      this.triedModesByCard.get(cardId) ??
+      this.triedModesByCard.get(
+        cardId
+      ) ??
       new Set<ModeKey>();
 
     triedModes.add(mode);
@@ -627,15 +767,20 @@ export class StudySession {
   }
 
   private markCurrentModePassed() {
-    const card = this.currentPhaseCard;
-    const mode = this.currentMode;
+    const card =
+      this.currentPhaseCard;
+
+    const mode =
+      this.currentMode;
 
     if (!card || !mode) {
       return;
     }
 
     const passedModes =
-      this.passedModesByCard.get(card.id) ??
+      this.passedModesByCard.get(
+        card.id
+      ) ??
       new Set<ModeKey>();
 
     passedModes.add(mode);
@@ -670,92 +815,112 @@ export class StudySession {
     }
   }
 
-private async finishSession() {
-  if (this.selectedTopicId === null) {
-    return;
-  }
+  private async finishSession() {
+    if (
+      this.selectedTopicId === null
+    ) {
+      return;
+    }
 
-  const topicId = this.selectedTopicId;
+    const topicId =
+      this.selectedTopicId;
 
-  const results = this.allCards.map(card => {
-    const passedModes =
-      this.passedModesByCard.get(card.id) ??
-      new Set<ModeKey>();
+    const results =
+      this.allCards.map(
+        card => {
+          const passedModes =
+            this.passedModesByCard.get(
+              card.id
+            ) ??
+            new Set<ModeKey>();
 
-    const passed =
-      this.selectedModes.size > 0 &&
-      Array.from(this.selectedModes).every(
-        mode => passedModes.has(mode)
+          const passed =
+            this.selectedModes.size > 0 &&
+            Array.from(
+              this.selectedModes
+            ).every(
+              mode =>
+                passedModes.has(mode)
+            );
+
+          return {
+            cardId: card.id,
+            passed
+          };
+        }
       );
 
-    return {
-      cardId: card.id,
-      passed
-    };
-  });
-
-  try {
-    if (this.continueSession) {
-      await Promise.all(
-        results
-          .filter(result => result.passed)
-          .map(result =>
-            this.dataService.setCardLearned(
-              topicId,
-              result.cardId,
-              true
+    try {
+      if (this.continueSession) {
+        await Promise.all(
+          results
+            .filter(
+              result =>
+                result.passed
             )
+            .map(
+              result =>
+                this.dataService.setCardLearned(
+                  topicId,
+                  result.cardId,
+                  true
+                )
+            )
+        );
+      } else {
+        await Promise.all(
+          results.map(
+            result =>
+              this.dataService.setCardLearned(
+                topicId,
+                result.cardId,
+                result.passed
+              )
           )
-      );
-    } else {
-      await Promise.all(
-        results.map(result =>
-          this.dataService.setCardLearned(
-            topicId,
-            result.cardId,
-            result.passed
-          )
+        );
+      }
+
+      const allTopicCards =
+        await this.dataService.getCards(
+          topicId
+        );
+
+      const learnedCount =
+        allTopicCards.filter(
+          card =>
+            card.learned
+        ).length;
+
+      const totalCards =
+        allTopicCards.length;
+
+      this.allCards =
+        allTopicCards;
+
+      this.passedCount =
+        learnedCount;
+
+      await this.dataService.saveStudySessionResult(
+        topicId,
+        this.topicName,
+        learnedCount,
+        totalCards,
+        Array.from(
+          this.selectedModes
         )
+      );
+    } catch (error) {
+      console.error(
+        'STUDY SESSION SAVE ERROR:',
+        error
       );
     }
 
-  
-const allTopicCards =
-    await this.dataService.getCards(topicId);
+    this.sessionFinished = true;
+    this.currentMode = null;
 
-const learnedCount =
-    allTopicCards.filter(
-        card => card.learned
-    ).length;
-
-this.allCards = allTopicCards;
-this.passedCount = learnedCount;
-
-const totalCards =
-    allTopicCards.length;
-
-    this.passedCount = learnedCount;
-
-    await this.dataService.saveStudySessionResult(
-      topicId,
-      this.topicName,
-      learnedCount,
-      totalCards,
-      Array.from(this.selectedModes)
-    );
-
-  } catch (error) {
-    console.error(
-      'STUDY SESSION SAVE ERROR:',
-      error
-    );
+    this.changeDetectorRef.detectChanges();
   }
-
-  this.sessionFinished = true;
-  this.currentMode = null;
-
-  this.changeDetectorRef.detectChanges();
-}
 
   restart() {
     this.sessionStarted = false;
@@ -769,21 +934,28 @@ const totalCards =
     this.triedModesByCard.clear();
 
     this.passedCount = 0;
-    this.answerFirst = false;
+    this.showLernAnswer = false;
 
     this.resetCurrentMode();
 
     this.changeDetectorRef.detectChanges();
   }
 
-  private normalize(answer: string): string {
+  private normalize(
+    answer: string
+  ): string {
     return answer
       .trim()
       .toLowerCase()
-      .replace(/\s+/g, ' ');
+      .replace(
+        /\s+/g,
+        ' '
+      );
   }
 
-  private shuffle<T>(items: T[]): T[] {
+  private shuffle<T>(
+    items: T[]
+  ): T[] {
     const result = [...items];
 
     for (
@@ -792,10 +964,18 @@ const totalCards =
       i--
     ) {
       const j =
-        Math.floor(Math.random() * (i + 1));
+        Math.floor(
+          Math.random() *
+          (i + 1)
+        );
 
-      [result[i], result[j]] =
-        [result[j], result[i]];
+      [
+        result[i],
+        result[j]
+      ] = [
+        result[j],
+        result[i]
+      ];
     }
 
     return result;

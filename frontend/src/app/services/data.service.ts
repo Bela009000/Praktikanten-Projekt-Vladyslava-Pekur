@@ -1,3 +1,4 @@
+
 import { Injectable } from '@angular/core';
 import {
   collection,
@@ -29,6 +30,7 @@ export interface Card {
   answer: string;
   learned: boolean;
 }
+
 export interface StudySessionResult {
   id: string;
   topicId: string;
@@ -49,6 +51,7 @@ export interface QuizAttemptResult {
   percentage: number;
   createdAt: Timestamp;
 }
+
 @Injectable({
   providedIn: 'root'
 })
@@ -68,7 +71,6 @@ export class DataService {
   ) {}
 
   private async getUserId(): Promise<string> {
-
     const user =
       await this.authService.waitForAuth();
 
@@ -81,12 +83,7 @@ export class DataService {
     return user.uid;
   }
 
-  // =========================================================
-  // TOPICS
-  // =========================================================
-
   async getTopics(): Promise<Topic[]> {
-
     const userId =
       await this.getUserId();
 
@@ -113,11 +110,8 @@ export class DataService {
     );
 
     try {
-
       return await request;
-
     } finally {
-
       this.topicsRequests.delete(
         userId
       );
@@ -127,7 +121,6 @@ export class DataService {
   private async loadTopics(
     userId: string
   ): Promise<Topic[]> {
-
     const topicsRef =
       collection(
         db,
@@ -150,7 +143,6 @@ export class DataService {
     const topics =
       snapshot.docs.map(
         docSnap => {
-
           const data =
             docSnap.data();
 
@@ -165,13 +157,8 @@ export class DataService {
         }
       );
 
-    // Самые новые темы сверху.
-    //
-    // У старых тем createdAt может отсутствовать,
-    // поэтому они просто отправляются вниз списка.
     topics.sort(
       (a, b) => {
-
         const timeA =
           a.createdAt?.toMillis() || 0;
 
@@ -193,7 +180,6 @@ export class DataService {
   async addTopic(
     name: string
   ): Promise<void> {
-
     const userId =
       await this.getUserId();
 
@@ -212,17 +198,10 @@ export class DataService {
       {
         name: cleanName,
         userId,
-
-        // Время создания темы.
-        // Благодаря этому новые темы
-        // отображаются сверху.
         createdAt: Timestamp.now()
       }
     );
 
-    // Обязательно очищаем кэш,
-    // чтобы при следующем getTopics()
-    // список загрузился заново.
     this.topicsCache.delete(
       userId
     );
@@ -231,7 +210,6 @@ export class DataService {
   async deleteTopic(
     topicId: string
   ): Promise<void> {
-
     const userId =
       await this.getUserId();
 
@@ -242,7 +220,6 @@ export class DataService {
       writeBatch(db);
 
     for (const card of cards) {
-
       batch.delete(
         doc(
           db,
@@ -276,111 +253,207 @@ export class DataService {
       userId
     );
   }
-async saveStudySessionResult(
-  topicId: string,
-  topicName: string,
-  learnedCount: number,
-  totalCards: number,
-  modes: string[]
-): Promise<void> {
-  const userId = await this.getUserId();
 
-  const resultsRef = collection(
-    db,
-    'users',
-    userId,
-    'studySessionResults'
-  );
+  async saveStudySessionResult(
+    topicId: string,
+    topicName: string,
+    learnedCount: number,
+    totalCards: number,
+    modes: string[]
+  ): Promise<void> {
+    const userId =
+      await this.getUserId();
 
-  const existingQuery = query(
-    resultsRef,
-    where('topicId', '==', topicId)
-  );
-
-  const snapshot = await getDocs(existingQuery);
-
-  const percentage =
-    totalCards > 0
-      ? Math.min(
-          100,
-          Math.round(
-            (learnedCount / totalCards) * 100
-          )
-        )
-      : 0;
-
-  const data = {
-    topicId,
-    topicName,
-    passedCount: Math.min(learnedCount, totalCards),
-    totalCards,
-    percentage,
-    modes,
-    createdAt: Timestamp.now()
-  };
-
-  if (!snapshot.empty) {
-    await updateDoc(
-      snapshot.docs[0].ref,
-      data
-    );
-    return;
-  }
-
-  await addDoc(
-    resultsRef,
-    data
-  );
-}
-async getLastStudySessionResults(
-    limitCount = 3
-): Promise<StudySessionResult[]> {
-    const userId = await this.getUserId();
-
-    const resultsRef = collection(
+    const resultsRef =
+      collection(
         db,
         'users',
         userId,
         'studySessionResults'
-    );
+      );
 
-    const q = query(
+    const snapshot =
+      await getDocs(
+        query(
+          resultsRef,
+          where(
+            'topicId',
+            '==',
+            topicId
+          )
+        )
+      );
+
+    const safeTotalCards =
+      Math.max(
+        0,
+        totalCards
+      );
+
+    const safeLearnedCount =
+      Math.min(
+        Math.max(
+          0,
+          learnedCount
+        ),
+        safeTotalCards
+      );
+
+    const percentage =
+      safeTotalCards > 0
+        ? Math.round(
+            (
+              safeLearnedCount /
+              safeTotalCards
+            ) * 100
+          )
+        : 0;
+
+    const data = {
+      topicId,
+      topicName,
+      passedCount:
+        safeLearnedCount,
+      totalCards:
+        safeTotalCards,
+      percentage,
+      modes,
+      createdAt:
+        Timestamp.now()
+    };
+
+    if (!snapshot.empty) {
+      const sortedDocs =
+        [...snapshot.docs].sort(
+          (a, b) => {
+            const aCreatedAt =
+              a.data()['createdAt'];
+
+            const bCreatedAt =
+              b.data()['createdAt'];
+
+            const aTime =
+              aCreatedAt instanceof Timestamp
+                ? aCreatedAt.toMillis()
+                : 0;
+
+            const bTime =
+              bCreatedAt instanceof Timestamp
+                ? bCreatedAt.toMillis()
+                : 0;
+
+            return bTime - aTime;
+          }
+        );
+
+      await updateDoc(
+        sortedDocs[0].ref,
+        data
+      );
+
+      if (sortedDocs.length > 1) {
+        await Promise.all(
+          sortedDocs
+            .slice(1)
+            .map(docSnap =>
+              deleteDoc(
+                docSnap.ref
+              )
+            )
+        );
+      }
+
+      return;
+    }
+
+    await addDoc(
+      resultsRef,
+      data
+    );
+  }
+
+  async getLastStudySessionResults(
+    limitCount = 3
+  ): Promise<StudySessionResult[]> {
+    const userId =
+      await this.getUserId();
+
+    const resultsRef =
+      collection(
+        db,
+        'users',
+        userId,
+        'studySessionResults'
+      );
+
+    const q =
+      query(
         resultsRef,
-        orderBy('createdAt', 'desc'),
+        orderBy(
+          'createdAt',
+          'desc'
+        ),
         limit(limitCount)
-    );
+      );
 
-    const snapshot = await getDocs(q);
+    const snapshot =
+      await getDocs(q);
 
-    return snapshot.docs.map(docSnap => {
-        const data = docSnap.data();
+    return snapshot.docs.map(
+      docSnap => {
+        const data =
+          docSnap.data();
+
+        const totalCards =
+          Number(
+            data['totalCards']
+          ) || 0;
+
+        const passedCount =
+          Math.min(
+            Number(
+              data['passedCount']
+            ) || 0,
+            totalCards
+          );
+
+        const percentage =
+          totalCards > 0
+            ? Math.round(
+                (
+                  passedCount /
+                  totalCards
+                ) * 100
+              )
+            : 0;
 
         return {
-            id: docSnap.id,
-            topicId: data['topicId'] || '',
-            topicName: data['topicName'] || '',
-            passedCount: data['passedCount'] || 0,
-            totalCards: data['totalCards'] || 0,
-            percentage: data['percentage'] || 0,
-            modes: Array.isArray(data['modes'])
-                ? data['modes']
-                : [],
-            createdAt:
-                data['createdAt'] instanceof Timestamp
-                    ? data['createdAt']
-                    : Timestamp.now()
+          id: docSnap.id,
+          topicId:
+            data['topicId'] || '',
+          topicName:
+            data['topicName'] || '',
+          passedCount,
+          totalCards,
+          percentage,
+          modes:
+            Array.isArray(
+              data['modes']
+            )
+              ? data['modes']
+              : [],
+          createdAt:
+            data['createdAt'] instanceof Timestamp
+              ? data['createdAt']
+              : Timestamp.now()
         };
-    });
-}
-
-  // =========================================================
-  // CARDS
-  // =========================================================
+      }
+    );
+  }
 
   async getCards(
     topicId: string
   ): Promise<Card[]> {
-
     const cachedCards =
       this.cardsCache.get(
         topicId
@@ -408,11 +481,8 @@ async getLastStudySessionResults(
     );
 
     try {
-
       return await request;
-
     } finally {
-
       this.cardsRequests.delete(
         topicId
       );
@@ -422,7 +492,6 @@ async getLastStudySessionResults(
   private async loadCards(
     topicId: string
   ): Promise<Card[]> {
-
     const snapshot =
       await getDocs(
         collection(
@@ -436,19 +505,15 @@ async getLastStudySessionResults(
     const cards =
       snapshot.docs.map(
         docSnap => {
-
           const data =
             docSnap.data();
 
           return {
             id: docSnap.id,
-
             question:
               data['question'] || '',
-
             answer:
               data['answer'] || '',
-
             learned:
               data['learned'] || false
           };
@@ -468,7 +533,6 @@ async getLastStudySessionResults(
     question: string,
     answer: string
   ): Promise<void> {
-
     await addDoc(
       collection(
         db,
@@ -495,7 +559,6 @@ async getLastStudySessionResults(
       answer: string;
     }[]
   ): Promise<Card[]> {
-
     if (cards.length === 0) {
       return [];
     }
@@ -514,22 +577,25 @@ async getLastStudySessionResults(
     const newCards: Card[] = [];
 
     for (const card of cards) {
-
       const cardRef =
         doc(cardsRef);
 
       const newCard: Card = {
         id: cardRef.id,
-        question: card.question,
-        answer: card.answer,
+        question:
+          card.question,
+        answer:
+          card.answer,
         learned: false
       };
 
       batch.set(
         cardRef,
         {
-          question: card.question,
-          answer: card.answer,
+          question:
+            card.question,
+          answer:
+            card.answer,
           learned: false
         }
       );
@@ -541,15 +607,12 @@ async getLastStudySessionResults(
 
     await batch.commit();
 
-    // Если карты уже были загружены,
-    // обновляем кэш сразу и не делаем getDocs().
     const cachedCards =
       this.cardsCache.get(
         topicId
       );
 
     if (cachedCards) {
-
       this.cardsCache.set(
         topicId,
         [
@@ -568,7 +631,6 @@ async getLastStudySessionResults(
     question: string,
     answer: string
   ): Promise<void> {
-
     await updateDoc(
       doc(
         db,
@@ -592,7 +654,6 @@ async getLastStudySessionResults(
     topicId: string,
     cardId: string
   ): Promise<void> {
-
     await deleteDoc(
       doc(
         db,
@@ -612,7 +673,6 @@ async getLastStudySessionResults(
     topicId: string,
     cardIds: string[]
   ): Promise<void> {
-
     if (cardIds.length === 0) {
       return;
     }
@@ -621,7 +681,6 @@ async getLastStudySessionResults(
       writeBatch(db);
 
     for (const cardId of cardIds) {
-
       batch.delete(
         doc(
           db,
@@ -645,7 +704,6 @@ async getLastStudySessionResults(
     cardId: string,
     learned: boolean
   ): Promise<void> {
-
     await updateDoc(
       doc(
         db,
@@ -664,12 +722,7 @@ async getLastStudySessionResults(
     );
   }
 
-  // =========================================================
-  // QUIZ
-  // =========================================================
-
   async getQuizCount(): Promise<number> {
-
     const userId =
       await this.getUserId();
 
@@ -704,11 +757,8 @@ async getLastStudySessionResults(
     );
 
     try {
-
       return await request;
-
     } finally {
-
       this.quizCountRequests.delete(
         userId
       );
@@ -718,7 +768,6 @@ async getLastStudySessionResults(
   private async loadQuizCount(
     userId: string
   ): Promise<number> {
-
     const snapshot =
       await getDocs(
         collection(
@@ -745,7 +794,6 @@ async getLastStudySessionResults(
     correctAnswers: number,
     totalQuestions: number
   ): Promise<void> {
-
     const userId =
       await this.getUserId();
 
@@ -760,7 +808,8 @@ async getLastStudySessionResults(
         topicId,
         correctAnswers,
         totalQuestions,
-        createdAt: Timestamp.now()
+        createdAt:
+          Timestamp.now()
       }
     );
 
@@ -769,9 +818,7 @@ async getLastStudySessionResults(
     );
   }
 
- 
   clearCache(): void {
-
     this.topicsCache.clear();
     this.topicsRequests.clear();
 
@@ -781,5 +828,4 @@ async getLastStudySessionResults(
     this.quizCountCache.clear();
     this.quizCountRequests.clear();
   }
-  
 }

@@ -59,6 +59,7 @@
 
         <main *ngIf="sessionStarted && !sessionFinished && currentPhase === 'lernmodus' && currentPhaseCard"
             class="ss-card">
+
             <div class="phase-header">
                 <span class="phase-tag">{{ phaseLabel }}</span>
 
@@ -81,29 +82,27 @@
 
             <div class="answer-reveal" *ngIf="showLernAnswer">
 
-                <span *ngIf="!answerFirst">
-                    Antwort
+                <span>
+                    {{ answerFirst ? 'Frage' : 'Antwort' }}
                 </span>
 
-                <span *ngIf="answerFirst">
-                    Frage
-                </span>
-
-                <strong *ngIf="!answerFirst">
-                    {{ currentPhaseCard.answer }}
-                </strong>
-
-                <strong *ngIf="answerFirst">
-                    {{ currentPhaseCard.question }}
+                <strong>
+                    {{ answerFirst
+                    ? currentPhaseCard.question
+                    : currentPhaseCard.answer
+                    }}
                 </strong>
 
             </div>
 
             <button type="button" class="reveal-button" *ngIf="!showLernAnswer" (click)="revealLernAnswer()">
+
                 {{ answerFirst ? 'Frage anzeigen' : 'Antwort anzeigen' }}
+
             </button>
 
             <div class="mark-buttons" *ngIf="showLernAnswer">
+
                 <button type="button" class="not-learned-button" (click)="markLern(false)">
                     Noch lernen
                 </button>
@@ -111,6 +110,7 @@
                 <button type="button" class="learned-button" (click)="markLern(true)">
                     Kann ich
                 </button>
+
             </div>
 
         </main>
