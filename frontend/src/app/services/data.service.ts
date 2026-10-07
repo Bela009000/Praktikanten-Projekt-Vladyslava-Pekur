@@ -414,7 +414,46 @@ export class DataService {
   ): Promise<void> {
     await updateDoc(this.cardDoc(topicId, cardId), { learned });
 
-    this.cardsCache.delete(topicId);
+    this.patchLearned(topicId, [cardId], learned);
+  }
+
+  async setCardsLearned(
+    topicId: string,
+    cardIds: string[],
+    learned: boolean
+  ): Promise<void> {
+    const size = 450;
+
+    for (let i = 0; i < cardIds.length; i += size) {
+      const batch = writeBatch(db);
+
+      for (const cardId of cardIds.slice(i, i + size)) {
+        batch.update(this.cardDoc(topicId, cardId), { learned });
+      }
+
+      await batch.commit();
+    }
+
+    this.patchLearned(topicId, cardIds, learned);
+  }
+
+  private patchLearned(
+    topicId: string,
+    cardIds: string[],
+    learned: boolean
+  ): void {
+    const cached = this.cardsCache.get(topicId);
+
+    if (!cached) {
+      return;
+    }
+
+    const ids = new Set(cardIds);
+
+    this.cardsCache.set(
+      topicId,
+      cached.map(card => (ids.has(card.id) ? { ...card, learned } : card))
+    );
   }
 
   // Quiz

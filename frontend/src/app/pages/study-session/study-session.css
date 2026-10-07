@@ -121,7 +121,8 @@
   color: var(--text-muted);
 }
 
-.mode-checkboxes {
+.mode-checkboxes,
+.options-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
@@ -137,8 +138,8 @@
   border-radius: 12px;
   cursor: pointer;
   transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease;
+    border-color 0.2s,
+    background-color 0.2s;
 }
 
 .mode-checkbox.checked {
@@ -156,7 +157,7 @@
 .reveal-button {
   width: 100%;
   padding: 14px;
-  border: none;
+  border: 0;
   border-radius: 10px;
   background: var(--accent);
   color: #fff;
@@ -164,7 +165,7 @@
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s;
 }
 
 .start-button {
@@ -262,9 +263,16 @@
   font-size: 20px;
 }
 
-.mark-buttons {
+.mark-buttons,
+.result-actions {
   display: flex;
+}
+
+.mark-buttons {
   gap: 12px;
+}
+.result-actions {
+  gap: 14px;
 }
 
 .not-learned-button,
@@ -298,21 +306,16 @@
   font-weight: 700;
 }
 
-.result-banner.correct {
+.result-banner.correct,
+.option-button.correct {
   background: rgba(16, 185, 129, 0.12);
   color: #34d399;
 }
 
-.result-banner.wrong {
+.result-banner.wrong,
+.option-button.wrong {
   background: rgba(239, 68, 68, 0.12);
   color: #f87171;
-}
-
-.options-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
 }
 
 .option-button {
@@ -326,20 +329,15 @@
   font-weight: 600;
   cursor: pointer;
   transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease;
+    border-color 0.2s,
+    background-color 0.2s;
 }
 
 .option-button.correct {
-  background: rgba(16, 185, 129, 0.12);
   border-color: rgba(52, 211, 153, 0.6);
-  color: #34d399;
 }
-
 .option-button.wrong {
-  background: rgba(239, 68, 68, 0.12);
   border-color: rgba(248, 113, 113, 0.6);
-  color: #f87171;
 }
 
 .memory-grid {
@@ -396,8 +394,8 @@
 .memory-tile-back {
   background: var(--accent-light);
   color: var(--text-primary);
-  transform: rotateY(180deg);
   border: 1px solid var(--border-color);
+  transform: rotateY(180deg);
 }
 
 .memory-tile.matched .memory-tile-back {
@@ -422,11 +420,6 @@
   font-weight: 700;
 }
 
-.result-actions {
-  display: flex;
-  gap: 14px;
-}
-
 .selection-button {
   flex: 1;
   padding: 14px;
@@ -437,113 +430,12 @@
   font-family: inherit;
   font-size: 15px;
   font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
   text-align: center;
-}
-
-.sessions-section {
-  margin-top: 10px;
-  margin-bottom: 40px;
-}
-
-.sessions-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-}
-
-.session-tile {
-  padding: 20px;
-  background: var(--glass-bg-soft);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
-  border-radius: 14px;
-  box-shadow:
-    0 6px 20px rgba(76, 29, 149, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  transition:
-    transform 0.25s ease,
-    background 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-.session-tile:hover {
-  background: var(--glass-bg);
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.12);
-}
-
-.session-tile-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.session-topic-name {
-  color: var(--primary-deep);
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.session-percent {
-  color: var(--accent);
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.session-progress-bar {
-  width: 100%;
-  height: 8px;
-  margin-bottom: 10px;
-  overflow: hidden;
-  background: var(--accent-light);
-  border-radius: 20px;
-}
-
-.session-progress-fill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 20px;
-  transition: width 0.3s ease;
-}
-
-.session-tile-footer {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  color: var(--text-muted);
-  font-size: 13px;
-}
-
-.session-modes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.session-mode-chip {
-  padding: 4px 10px;
-  background: var(--accent-light);
-  color: var(--accent-dark);
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-@media (max-width: 800px) {
-  .sessions-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  text-decoration: none;
+  cursor: pointer;
 }
 
 @media (max-width: 600px) {
-  .sessions-grid {
-    grid-template-columns: 1fr;
-  }
-
   .mode-checkboxes,
   .options-grid {
     grid-template-columns: 1fr;
