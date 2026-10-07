@@ -22,13 +22,24 @@ import {
   where,
   getDocs,
   deleteDoc,
-  updateDoc
+  updateDoc,
+  writeBatch
 } from 'firebase/firestore';
 
-import { Injectable } from '@angular/core';
+import type { DocumentReference } from 'firebase/firestore';
+
+import { Injectable, Injector } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 
 import { auth, db } from '../firebase.config';
+
+export class AppError extends Error {
+  constructor(public code: string, message?: string) {
+    super(message ?? code);
+    this.name = 'AppError';
+  }
+}
 
 @Injectable({
   providedIn: 'root'
@@ -36,74 +47,90 @@ import { auth, db } from '../firebase.config';
 export class AuthService {
   currentUser: User | null = null;
 
-  private photoURLSubject =
-    new BehaviorSubject<string>('');
+  private userDataSubject = new BehaviorSubject<any>(null);
 
-  photoURL$ =
-    this.photoURLSubject.asObservable();
+  userData$ = this.userDataSubject.asObservable();
 
-  private userDataSubject =
-    new BehaviorSubject<any>(null);
-
-  userData$ =
-    this.userDataSubject.asObservable();
+  photoURL$ = this.userData$.pipe(
+    map(data => (data?.photoURL as string) || ''),
+    distinctUntilChanged()
+  );
 
   private userDataCache: any = null;
 
   private authReady: Promise<User | null>;
 
-  constructor() {
-    this.authReady =
-      new Promise(resolve => {
-        const unsubscribe =
-          onAuthStateChanged(
-            auth,
-            async user => {
-              this.currentUser = user;
+  constructor(private injector: Injector) {
+    this.authReady = new Promise(resolve => {
+      const unsubscribe = onAuthStateChanged(auth, async user => {
+        this.currentUser = user;
 
-              if (!user) {
-                this.userDataCache = null;
-                this.userDataSubject.next(null);
-                this.photoURLSubject.next('');
+        if (!user) {
+          this.setUserData(null);
+        } else {
+          try {
+            this.setUserData(await this.loadUserData(user));
+          } catch (error) {
+            console.error('AUTH USER DATA ERROR:', error);
+            this.setUserData(null);
+          }
+        }
 
-                unsubscribe();
-                resolve(null);
-
-                return;
-              }
-
-              try {
-                const data =
-                  await this.loadUserDataFromFirestore(
-                    user
-                  );
-
-                this.userDataCache = data;
-
-                this.userDataSubject.next(
-                  data
-                );
-
-                this.photoURLSubject.next(
-                  data?.photoURL || ''
-                );
-              } catch (error) {
-                console.error(
-                  'AUTH USER DATA ERROR:',
-                  error
-                );
-
-                this.userDataCache = null;
-                this.userDataSubject.next(null);
-                this.photoURLSubject.next('');
-              }
-
-              unsubscribe();
-              resolve(user);
-            }
-          );
+        unsubscribe();
+        resolve(user);
       });
+    });
   }
+
+  // Helpers
+
+  private setUserData(data: any): void {
+    this.userDataCache = data;
+    this.userDataSubject.next(data);
+  }
+
+  private async loadUserData(user: User): Promise<any> {
+    const snapshot = await getDoc(doc(db, 'users', user.uid));
+
+    return snapshot.exists() ? snapshot.data() : null;
+  }
+
+  private async requireUser(): Promise<User> {
+    const user = await this.waitForAuth();
+
+    if (!user) {
+      throw new Error('Kein Benutzer angemeldet');
+    }
+
+    return user;
+  }
+
+  private validUsername(username: string): boolean {
+    return !!username && !username.includes('@');
+  }
+
+  private async clearDataCache(): Promise<void> {
+    try {
+      const { DataService } = await import('./data.service');
+      this.injector.get(DataService).clearCache();
+    } catch (error) {
+      console.error('CLEAR CACHE ERROR:', error);
+    }
+  }
+
+  private async deleteInBatches(refs: DocumentReference[]): Promise<void> {
+    const size = 450;
+
+    for (let i = 0; i < refs.length; i += size) {
+      const batch = writeBatch(db);
+
+      refs.slice(i, i + size).forEach(ref => batch.delete(ref));
+
+      await batch.commit();
+    }
+  }
+
+  // Auth state
 
   async waitForAuth(): Promise<User | null> {
     if (this.currentUser) {
@@ -113,29 +140,8 @@ export class AuthService {
     return this.authReady;
   }
 
-  private async loadUserDataFromFirestore(
-    user: User
-  ): Promise<any> {
-    const userRef =
-      doc(
-        db,
-        'users',
-        user.uid
-      );
-
-    const snapshot =
-      await getDoc(userRef);
-
-    if (!snapshot.exists()) {
-      return null;
-    }
-
-    return snapshot.data();
-  }
-
   async getUserData(): Promise<any> {
-    const user =
-      await this.waitForAuth();
+    const user = await this.waitForAuth();
 
     if (!user) {
       return null;
@@ -145,125 +151,72 @@ export class AuthService {
       return this.userDataCache;
     }
 
-    const data =
-      await this.loadUserDataFromFirestore(
-        user
-      );
+    const data = await this.loadUserData(user);
 
-    this.userDataCache = data;
-
-    this.userDataSubject.next(data);
-
-    this.photoURLSubject.next(
-      data?.photoURL || ''
-    );
+    this.setUserData(data);
 
     return data;
   }
 
-  async refreshUserData(): Promise<{
-    user: User;
-    data: any;
-  } | null> {
-    let user =
-      await this.waitForAuth();
+  async refreshUserData(): Promise<{ user: User; data: any } | null> {
+    let user = await this.waitForAuth();
 
     if (!user) {
       this.currentUser = null;
-      this.userDataCache = null;
-
-      this.userDataSubject.next(null);
-      this.photoURLSubject.next('');
+      this.setUserData(null);
 
       return null;
     }
 
     await reload(user);
 
-    user =
-      auth.currentUser || user;
-
+    user = auth.currentUser || user;
     this.currentUser = user;
 
-    const data =
-      await this.loadUserDataFromFirestore(
-        user
-      );
+    const data = await this.loadUserData(user);
 
-    this.userDataCache = data;
+    this.setUserData(data);
 
-    this.userDataSubject.next(data);
-
-    this.photoURLSubject.next(
-      data?.photoURL || ''
-    );
-
-    return {
-      user,
-      data
-    };
+    return { user, data };
   }
+
+  getCurrentUsername(): string {
+    return this.currentUser?.displayName || '';
+  }
+
+  // Register / login / logout
 
   async register(
     username: string,
     email: string,
     password: string
   ): Promise<User> {
-    const cleanUsername =
-      username.trim();
+    const cleanUsername = username.trim();
+    const cleanEmail = email.trim().toLowerCase();
 
-    const cleanEmail =
-      email.trim().toLowerCase();
-
-    if (
-      !cleanUsername ||
-      cleanUsername.includes('@')
-    ) {
-      throw {
-        code: 'auth/invalid-username'
-      };
+    if (!this.validUsername(cleanUsername)) {
+      throw new AppError('auth/invalid-username');
     }
 
     if (!cleanEmail) {
-      throw {
-        code: 'auth/invalid-email'
-      };
+      throw new AppError('auth/invalid-email');
     }
 
-    const usernameRef =
-      doc(
-        db,
-        'usernames',
-        cleanUsername.toLowerCase()
-      );
+    const usernameRef = doc(db, 'usernames', cleanUsername.toLowerCase());
 
-    const usernameSnapshot =
-      await getDoc(usernameRef);
-
-    if (usernameSnapshot.exists()) {
-      throw {
-        code:
-          'auth/username-already-in-use'
-      };
+    if ((await getDoc(usernameRef)).exists()) {
+      throw new AppError('auth/username-already-in-use');
     }
 
-    const userCredential =
-      await createUserWithEmailAndPassword(
-        auth,
-        cleanEmail,
-        password
-      );
-
-    const user =
-      userCredential.user;
-
-    await updateProfile(
-      user,
-      {
-        displayName:
-          cleanUsername
-      }
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      cleanEmail,
+      password
     );
+
+    const user = userCredential.user;
+
+    await updateProfile(user, { displayName: cleanUsername });
 
     const userData = {
       username: cleanUsername,
@@ -271,221 +224,109 @@ export class AuthService {
       photoURL: ''
     };
 
-    await setDoc(
-      doc(
-        db,
-        'users',
-        user.uid
-      ),
-      userData
-    );
+    await setDoc(doc(db, 'users', user.uid), userData);
 
-    await setDoc(
-      usernameRef,
-      {
-        uid: user.uid,
-        email: cleanEmail
-      }
-    );
+    await setDoc(usernameRef, {
+      uid: user.uid,
+      email: cleanEmail
+    });
 
     this.currentUser = user;
-    this.userDataCache = userData;
-
-    this.userDataSubject.next(
-      userData
-    );
-
-    this.photoURLSubject.next('');
+    this.setUserData(userData);
 
     return user;
   }
 
-  async login(
-    usernameOrEmail: string,
-    password: string
-  ): Promise<User> {
-    let email =
-      usernameOrEmail.trim();
+  async login(usernameOrEmail: string, password: string): Promise<User> {
+    let email = usernameOrEmail.trim();
 
     if (!email.includes('@')) {
-      const usernameRef =
-        doc(
-          db,
-          'usernames',
-          email.toLowerCase()
-        );
-
-      const usernameSnapshot =
-        await getDoc(usernameRef);
-
-      if (!usernameSnapshot.exists()) {
-        throw {
-          code: 'auth/user-not-found'
-        };
-      }
-
-      const usernameData =
-        usernameSnapshot.data();
-
-      email =
-        usernameData['email'];
-    }
-
-    const userCredential =
-      await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
+      const usernameSnapshot = await getDoc(
+        doc(db, 'usernames', email.toLowerCase())
       );
 
-    const user =
-      userCredential.user;
+      if (!usernameSnapshot.exists()) {
+        throw new AppError('auth/user-not-found');
+      }
+
+      email = usernameSnapshot.data()['email'];
+    }
+
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    const user = userCredential.user;
 
     this.currentUser = user;
 
-    const data =
-      await this.loadUserDataFromFirestore(
-        user
-      );
-
-    this.userDataCache = data;
-
-    this.userDataSubject.next(data);
-
-    this.photoURLSubject.next(
-      data?.photoURL || ''
-    );
+    this.setUserData(await this.loadUserData(user));
 
     return user;
   }
 
-  async changeUsername(
-    newUsername: string
-  ): Promise<User> {
-    const user =
-      await this.waitForAuth();
+  async logout(): Promise<void> {
+    await signOut(auth);
 
-    if (!user) {
-      throw new Error(
-        'Kein Benutzer angemeldet'
-      );
+    this.currentUser = null;
+    this.setUserData(null);
+
+    await this.clearDataCache();
+  }
+
+  // Profile
+
+  async changeUsername(newUsername: string): Promise<User> {
+    const user = await this.requireUser();
+    const username = newUsername.trim();
+
+    if (!this.validUsername(username)) {
+      throw new AppError('auth/invalid-username');
     }
 
-    const username =
-      newUsername.trim();
+    const usernameKey = username.toLowerCase();
+    const newUsernameRef = doc(db, 'usernames', usernameKey);
+    const usernameSnapshot = await getDoc(newUsernameRef);
 
     if (
-      !username ||
-      username.includes('@')
+      usernameSnapshot.exists() &&
+      usernameSnapshot.data()['uid'] !== user.uid
     ) {
-      throw {
-        code: 'auth/invalid-username'
-      };
+      throw new AppError('auth/username-already-in-use');
     }
 
-    const usernameKey =
-      username.toLowerCase();
-
-    const newUsernameRef =
-      doc(
-        db,
-        'usernames',
-        usernameKey
-      );
-
-    const usernameSnapshot =
-      await getDoc(
-        newUsernameRef
-      );
-
-    if (usernameSnapshot.exists()) {
-      const existingData =
-        usernameSnapshot.data();
-
-      if (
-        existingData['uid'] !==
-        user.uid
-      ) {
-        throw {
-          code:
-            'auth/username-already-in-use'
-        };
-      }
-    }
-
-    const oldUsername =
+    const oldUsernameKey = (
       this.userDataCache?.username ||
       user.displayName ||
-      '';
+      ''
+    ).toLowerCase();
 
-    const oldUsernameKey =
-      oldUsername.toLowerCase();
+    await updateProfile(user, { displayName: username });
 
-    await updateProfile(
-      user,
-      {
-        displayName:
-          username
-      }
-    );
+    await updateDoc(doc(db, 'users', user.uid), { username });
 
-    await updateDoc(
-      doc(
-        db,
-        'users',
-        user.uid
-      ),
-      {
-        username
-      }
-    );
+    await setDoc(newUsernameRef, {
+      uid: user.uid,
+      email: user.email || ''
+    });
 
-    await setDoc(
-      newUsernameRef,
-      {
-        uid: user.uid,
-        email: user.email || ''
-      }
-    );
+    if (oldUsernameKey && oldUsernameKey !== usernameKey) {
+      const oldUsernameRef = doc(db, 'usernames', oldUsernameKey);
+      const oldSnapshot = await getDoc(oldUsernameRef);
 
-    if (
-      oldUsernameKey &&
-      oldUsernameKey !== usernameKey
-    ) {
-      const oldUsernameRef =
-        doc(
-          db,
-          'usernames',
-          oldUsernameKey
-        );
-
-      const oldSnapshot =
-        await getDoc(
-          oldUsernameRef
-        );
-
-      if (
-        oldSnapshot.exists() &&
-        oldSnapshot.data()['uid'] ===
-          user.uid
-      ) {
-        await deleteDoc(
-          oldUsernameRef
-        );
+      if (oldSnapshot.exists() && oldSnapshot.data()['uid'] === user.uid) {
+        await deleteDoc(oldUsernameRef);
       }
     }
 
-    this.userDataCache = {
+    this.currentUser = auth.currentUser;
+
+    this.setUserData({
       ...(this.userDataCache || {}),
       username
-    };
-
-    this.currentUser =
-      auth.currentUser;
-
-    this.userDataSubject.next(
-      this.userDataCache
-    );
+    });
 
     return user;
   }
@@ -494,398 +335,163 @@ export class AuthService {
     currentPassword: string,
     newPassword: string
   ): Promise<void> {
-    const user =
-      await this.waitForAuth();
-
-    if (!user) {
-      throw new Error(
-        'Kein Benutzer angemeldet'
-      );
-    }
+    const user = await this.requireUser();
 
     if (!currentPassword) {
-      throw {
-        code:
-          'auth/missing-current-password'
-      };
+      throw new AppError('auth/missing-current-password');
     }
 
-    if (
-      !newPassword ||
-      newPassword.length < 6
-    ) {
-      throw {
-        code: 'auth/weak-password'
-      };
+    if (!newPassword || newPassword.length < 6) {
+      throw new AppError('auth/weak-password');
     }
 
     if (!user.email) {
-      throw {
-        code: 'auth/no-email'
-      };
+      throw new AppError('auth/no-email');
     }
 
-    const credential =
-      EmailAuthProvider.credential(
-        user.email,
-        currentPassword
-      );
-
-    await reauthenticateWithCredential(
-      user,
-      credential
+    const credential = EmailAuthProvider.credential(
+      user.email,
+      currentPassword
     );
 
-    await updatePassword(
-      user,
-      newPassword
-    );
+    await reauthenticateWithCredential(user, credential);
+    await updatePassword(user, newPassword);
 
-    this.currentUser =
-      auth.currentUser;
+    this.currentUser = auth.currentUser;
   }
 
-  async changeAvatarBase64(
-    file: File
-  ): Promise<string> {
-    const user =
-      await this.waitForAuth();
+  // Avatar
 
-    if (!user) {
-      throw new Error(
-        'Kein Benutzer angemeldet'
-      );
+  async changeAvatarBase64(file: File): Promise<string> {
+    const user = await this.requireUser();
+
+    if (!file.type.startsWith('image/')) {
+      throw new AppError('avatar/invalid-file');
     }
 
-    if (
-      !file.type.startsWith('image/')
-    ) {
-      throw {
-        code: 'avatar/invalid-file'
-      };
-    }
-
-    const base64 =
-      await this.compressImage(file);
+    const base64 = await this.compressImage(file);
 
     if (base64.length > 300000) {
-      throw {
-        code: 'avatar-too-large'
-      };
+      throw new AppError('avatar-too-large');
     }
 
-    await setDoc(
-      doc(
-        db,
-        'users',
-        user.uid
-      ),
-      {
-        photoURL: base64
-      },
-      {
-        merge: true
-      }
-    );
-
-    this.userDataCache = {
-      ...(this.userDataCache || {}),
-      photoURL: base64
-    };
-
-    this.userDataSubject.next(
-      this.userDataCache
-    );
-
-    this.photoURLSubject.next(
-      base64
-    );
+    await this.saveAvatar(user, base64);
 
     return base64;
   }
 
   async deleteAvatar(): Promise<void> {
-    const user =
-      await this.waitForAuth();
+    const user = await this.requireUser();
 
-    if (!user) {
-      throw new Error(
-        'Kein Benutzer angemeldet'
-      );
-    }
+    await this.saveAvatar(user, '');
+  }
 
-    await setDoc(
-      doc(
-        db,
-        'users',
-        user.uid
-      ),
-      {
-        photoURL: ''
-      },
-      {
-        merge: true
-      }
-    );
+  private async saveAvatar(user: User, photoURL: string): Promise<void> {
+    await setDoc(doc(db, 'users', user.uid), { photoURL }, { merge: true });
 
-    this.userDataCache = {
+    this.setUserData({
       ...(this.userDataCache || {}),
-      photoURL: ''
-    };
-
-    this.userDataSubject.next(
-      this.userDataCache
-    );
-
-    this.photoURLSubject.next('');
+      photoURL
+    });
   }
 
-  private compressImage(
-    file: File
-  ): Promise<string> {
-    return new Promise(
-      (resolve, reject) => {
-        const reader =
-          new FileReader();
+  private compressImage(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
 
-        reader.onload = () => {
-          const image =
-            new Image();
+      reader.onerror = () =>
+        reject(new Error('Bild konnte nicht gelesen werden'));
 
-          image.onload = () => {
-            const maxSize = 512;
+      reader.onload = () => {
+        const image = new Image();
 
-            let width =
-              image.width;
+        image.onerror = () =>
+          reject(new Error('Bild konnte nicht geladen werden'));
 
-            let height =
-              image.height;
-
-            if (width > height) {
-              if (width > maxSize) {
-                height =
-                  Math.round(
-                    height *
-                    maxSize /
-                    width
-                  );
-
-                width =
-                  maxSize;
-              }
-            } else {
-              if (height > maxSize) {
-                width =
-                  Math.round(
-                    width *
-                    maxSize /
-                    height
-                  );
-
-                height =
-                  maxSize;
-              }
-            }
-
-            const canvas =
-              document.createElement(
-                'canvas'
-              );
-
-            canvas.width = width;
-            canvas.height = height;
-
-            const context =
-              canvas.getContext('2d');
-
-            if (!context) {
-              reject(
-                new Error(
-                  'Canvas konnte nicht erstellt werden'
-                )
-              );
-
-              return;
-            }
-
-            context.drawImage(
-              image,
-              0,
-              0,
-              width,
-              height
-            );
-
-            resolve(
-              canvas.toDataURL(
-                'image/jpeg',
-                0.7
-              )
-            );
-          };
-
-          image.onerror = () => {
-            reject(
-              new Error(
-                'Bild konnte nicht geladen werden'
-              )
-            );
-          };
-
-          image.src =
-            reader.result as string;
-        };
-
-        reader.onerror = () => {
-          reject(
-            new Error(
-              'Bild konnte nicht gelesen werden'
-            )
+        image.onload = () => {
+          const maxSize = 512;
+          const scale = Math.min(
+            1,
+            maxSize / Math.max(image.width, image.height)
           );
+
+          const width = Math.round(image.width * scale);
+          const height = Math.round(image.height * scale);
+
+          const canvas = document.createElement('canvas');
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const context = canvas.getContext('2d');
+
+          if (!context) {
+            reject(new Error('Canvas konnte nicht erstellt werden'));
+            return;
+          }
+
+          context.drawImage(image, 0, 0, width, height);
+
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
         };
 
-        reader.readAsDataURL(file);
-      }
-    );
+        image.src = reader.result as string;
+      };
+
+      reader.readAsDataURL(file);
+    });
   }
 
-  async logout(): Promise<void> {
-    await signOut(auth);
-
-    this.currentUser = null;
-    this.userDataCache = null;
-
-    this.userDataSubject.next(null);
-    this.photoURLSubject.next('');
-  }
+  // Delete account
 
   async deleteAccount(): Promise<void> {
-    const user =
-      await this.waitForAuth();
+    const user = await this.requireUser();
+    const userId = user.uid;
 
-    if (!user) {
-      throw new Error(
-        'Kein Benutzer angemeldet'
+    const refs: DocumentReference[] = [];
+
+    const topicsSnapshot = await getDocs(
+      query(collection(db, 'topics'), where('userId', '==', userId))
+    );
+
+    for (const topic of topicsSnapshot.docs) {
+      const cardsSnapshot = await getDocs(
+        collection(db, 'topics', topic.id, 'cards')
       );
+
+      cardsSnapshot.docs.forEach(card => refs.push(card.ref));
+      refs.push(topic.ref);
     }
 
-    const userId =
-      user.uid;
+    for (const sub of ['quizAttempts', 'studySessionResults']) {
+      const snapshot = await getDocs(collection(db, 'users', userId, sub));
 
-    const topicsRef =
-      collection(
-        db,
-        'topics'
-      );
-
-    const topicsQuery =
-      query(
-        topicsRef,
-        where(
-          'userId',
-          '==',
-          userId
-        )
-      );
-
-    const topicsSnapshot =
-      await getDocs(topicsQuery);
-
-    for (
-      const topic of
-      topicsSnapshot.docs
-    ) {
-      const cardsSnapshot =
-        await getDocs(
-          collection(
-            db,
-            'topics',
-            topic.id,
-            'cards'
-          )
-        );
-
-      for (
-        const card of
-        cardsSnapshot.docs
-      ) {
-        await deleteDoc(
-          card.ref
-        );
-      }
-
-      await deleteDoc(
-        topic.ref
-      );
+      snapshot.docs.forEach(item => refs.push(item.ref));
     }
 
-    const quizAttemptsSnapshot =
-      await getDocs(
-        collection(
-          db,
-          'users',
-          userId,
-          'quizAttempts'
-        )
-      );
-
-    for (
-      const attempt of
-      quizAttemptsSnapshot.docs
-    ) {
-      await deleteDoc(
-        attempt.ref
-      );
-    }
+    await this.deleteInBatches(refs);
 
     const username =
-      this.userDataCache?.username ||
-      user.displayName ||
-      '';
+      this.userDataCache?.username || user.displayName || '';
 
     if (username) {
-      const usernameRef =
-        doc(
-          db,
-          'usernames',
-          username.toLowerCase()
-        );
-
-      const usernameSnapshot =
-        await getDoc(usernameRef);
+      const usernameRef = doc(db, 'usernames', username.toLowerCase());
+      const usernameSnapshot = await getDoc(usernameRef);
 
       if (
         usernameSnapshot.exists() &&
-        usernameSnapshot.data()['uid'] ===
-          userId
+        usernameSnapshot.data()['uid'] === userId
       ) {
-        await deleteDoc(
-          usernameRef
-        );
+        await deleteDoc(usernameRef);
       }
     }
 
-    await deleteDoc(
-      doc(
-        db,
-        'users',
-        userId
-      )
-    );
-
+    await deleteDoc(doc(db, 'users', userId));
     await deleteUser(user);
 
     this.currentUser = null;
-    this.userDataCache = null;
+    this.setUserData(null);
 
-    this.userDataSubject.next(null);
-    this.photoURLSubject.next('');
-  }
-
-  getCurrentUsername(): string {
-    return (
-      this.currentUser?.displayName ||
-      ''
-    );
+    await this.clearDataCache();
   }
 }
