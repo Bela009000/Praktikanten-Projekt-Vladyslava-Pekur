@@ -92,7 +92,7 @@ export class Account implements OnInit, AfterViewInit, OnDestroy {
   private destroyed = false;
   private subscription = new Subscription();
 
-  constructor(
+  constructor( //Angular передаёт сюда три объекта
     private router: Router,
     private authService: AuthService,
     private changeDetectorRef: ChangeDetectorRef
@@ -100,9 +100,9 @@ export class Account implements OnInit, AfterViewInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     this.subscription.add(
-      this.authService.photoURL$.subscribe(photoURL => {
-        this.photoURL = photoURL || '';
-        this.update();
+      this.authService.photoURL$.subscribe(photoURL => { //Angular передаёт сюда три объекта.
+        this.photoURL = photoURL || ''; //приходит фото
+        this.update(); //обновление 
       })
     );
 
@@ -113,7 +113,7 @@ export class Account implements OnInit, AfterViewInit, OnDestroy {
     this.renderIcons();
   }
 
-  ngOnDestroy(): void {
+  ngOnDestroy(): void { //покидание странрицы 
     this.destroyed = true;
     this.subscription.unsubscribe();
   }

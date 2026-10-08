@@ -62,11 +62,11 @@ export class AuthService {
 
   constructor(private injector: Injector) {
     this.authReady = new Promise(resolve => {
-      const unsubscribe = onAuthStateChanged(auth, async user => {
-        this.currentUser = user;
+      const unsubscribe = onAuthStateChanged(auth, async user => { //«Пользователь сейчас вошёл или нет?»
+        this.currentUser = user; //Сохранение текущего пользователя
 
         if (!user) {
-          this.setUserData(null);
+          this.setUserData(null); //если пользователь не вошёл, то данные пользователя будут null
         } else {
           try {
             this.setUserData(await this.loadUserData(user));
@@ -88,13 +88,13 @@ export class AuthService {
     this.userDataCache = data;
     this.userDataSubject.next(data);
   }
-
+//загрузка данных из базы
   private async loadUserData(user: User): Promise<any> {
     const snapshot = await getDoc(doc(db, 'users', user.uid));
 
     return snapshot.exists() ? snapshot.data() : null;
   }
-
+//Проверка пользователя
   private async requireUser(): Promise<User> {
     const user = await this.waitForAuth();
 
@@ -108,7 +108,6 @@ export class AuthService {
   private validUsername(username: string): boolean {
     return !!username && !username.includes('@');
   }
-
   private async clearDataCache(): Promise<void> {
     try {
       const { DataService } = await import('./data.service');
@@ -117,7 +116,7 @@ export class AuthService {
       console.error('CLEAR CACHE ERROR:', error);
     }
   }
-
+//Удаление данных пользователя
   private async deleteInBatches(refs: DocumentReference[]): Promise<void> {
     const size = 450;
 
@@ -157,7 +156,7 @@ export class AuthService {
 
     return data;
   }
-
+//Обновление данных пользователя (кнопка )
   async refreshUserData(): Promise<{ user: User; data: any } | null> {
     let user = await this.waitForAuth();
 
@@ -394,7 +393,7 @@ export class AuthService {
       photoURL
     });
   }
-
+//загрузка и сжатие изображения
   private compressImage(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -447,9 +446,9 @@ export class AuthService {
   async deleteAccount(): Promise<void> {
     const user = await this.requireUser();
     const userId = user.uid;
-
+//полует польхователя
     const refs: DocumentReference[] = [];
-
+//ищет все его темы
     const topicsSnapshot = await getDocs(
       query(collection(db, 'topics'), where('userId', '==', userId))
     );
@@ -469,7 +468,7 @@ export class AuthService {
       snapshot.docs.forEach(item => refs.push(item.ref));
     }
 
-    await this.deleteInBatches(refs);
+    await this.deleteInBatches(refs); // само удаление
 
     const username =
       this.userDataCache?.username || user.displayName || '';
@@ -482,16 +481,16 @@ export class AuthService {
         usernameSnapshot.exists() &&
         usernameSnapshot.data()['uid'] === userId
       ) {
-        await deleteDoc(usernameRef);
+        await deleteDoc(usernameRef);// удаление имени пользователя из коллекции usernames
       }
     }
 
     await deleteDoc(doc(db, 'users', userId));
-    await deleteUser(user);
+    await deleteUser(user); //удаление пользователя из Firebase Authentication
 
     this.currentUser = null;
     this.setUserData(null);
 
-    await this.clearDataCache();
+    await this.clearDataCache();// очистка кэша данных
   }
 }

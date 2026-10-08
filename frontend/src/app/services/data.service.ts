@@ -66,7 +66,7 @@ export class DataService {
   private quizCountRequests = new Map<string, Promise<number>>();
 
   constructor(private authService: AuthService) {}
-
+//Проверка пользователя
   private async getUserId(): Promise<string> {
     const user = await this.authService.waitForAuth();
 
@@ -80,7 +80,7 @@ export class DataService {
   private cardDoc(topicId: string, cardId: string) {
     return doc(db, 'topics', topicId, 'cards', cardId);
   }
-
+//Кэширование
   private async cached<T>(
     cache: Map<string, T>,
     requests: Map<string, Promise<T>>,
@@ -274,7 +274,7 @@ export class DataService {
       );
 
       const percentage =
-        totalCards > 0 ? Math.round((passedCount / totalCards) * 100) : 0;
+        totalCards > 0 ? Math.round((passedCount / totalCards) * 100) : 0; //Сохранение результата обучения
 
       return {
         id: docSnap.id,
