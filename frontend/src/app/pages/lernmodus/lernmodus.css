@@ -28,7 +28,7 @@
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s;
 }
 
 .back-button:hover {
@@ -64,8 +64,8 @@
   font-weight: 600;
   cursor: pointer;
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
+    background 0.2s,
+    border-color 0.2s;
 }
 
 .shuffle-button:hover {
@@ -87,6 +87,10 @@
   min-height: 360px;
   margin: 0 auto;
   padding: 50px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
@@ -95,10 +99,6 @@
   box-shadow:
     0 12px 35px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
 }
 
 .card-label {
@@ -146,40 +146,58 @@
   font-weight: 600;
   cursor: pointer;
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.restart-button,
+.topics-button {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.show-answer-button,
+.next-button,
+.restart-button {
+  background: var(--accent);
+  color: white;
+  border: 0;
+}
+
+.show-answer-button:hover,
+.next-button:hover,
+.restart-button:hover {
+  background: var(--accent-dark);
 }
 
 .show-answer-button {
-  background: var(--accent);
-  color: white;
-  border: none;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 }
 
-.show-answer-button:hover {
-  background: var(--accent-dark);
-}
-
-.next-button {
-  background: var(--accent);
-  color: white;
-  border: none;
-}
-
-.next-button:hover {
-  background: var(--accent-dark);
-}
-
-.previous-button {
-  margin-top: 12px;
+.previous-button,
+.topics-button {
   background: transparent;
   color: var(--accent);
   border: 1px solid var(--input-border);
 }
 
-.previous-button:hover:not(:disabled) {
+.previous-button {
+  margin-top: 12px;
+}
+
+.previous-button:hover:not(:disabled),
+.topics-button:hover {
   background: var(--accent-light);
   border-color: var(--accent);
 }
@@ -258,43 +276,6 @@
   margin-top: 25px;
 }
 
-.restart-button,
-.topics-button {
-  width: 100%;
-  padding: 13px 16px;
-  border-radius: 9px;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease;
-}
-
-.restart-button {
-  background: var(--accent);
-  color: white;
-  border: none;
-}
-
-.restart-button:hover {
-  background: var(--accent-dark);
-}
-
-.topics-button {
-  background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--input-border);
-}
-
-.topics-button:hover {
-  background: var(--accent-light);
-  border-color: var(--accent);
-}
-
 @media (max-width: 700px) {
   .learning-header {
     grid-template-columns: 1fr;
@@ -306,10 +287,7 @@
     order: -1;
   }
 
-  .shuffle-button {
-    justify-self: center;
-  }
-
+  .shuffle-button,
   .back-button {
     justify-self: center;
   }
@@ -326,7 +304,6 @@
   .question {
     font-size: 28px;
   }
-
   .answer {
     font-size: 23px;
   }

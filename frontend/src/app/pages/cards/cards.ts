@@ -1,4 +1,11 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { DataService, Card } from '../../services/data.service';
@@ -9,8 +16,7 @@ import { DataService, Card } from '../../services/data.service';
   templateUrl: './cards.html',
   styleUrl: './cards.css'
 })
-export class Cards {
-
+export class Cards implements OnInit, OnDestroy {
   topicId = '';
   topicName = '';
 
@@ -20,60 +26,82 @@ export class Cards {
   currentIndex = 0;
   isFlipped = false;
   isFinished = false;
-
-  // false = Frage → Antwort
-  // true  = Antwort → Frage
   isReversed = false;
+  loading = true;
+
+  private busy = false;
+  private destroyed = false;
 
   constructor(
     private route: ActivatedRoute,
     private dataService: DataService,
-    private changeDetectorRef: ChangeDetectorRef
+    private changeDetectorRef: ChangeDetectorRef,
+    private host: ElementRef<HTMLElement>
   ) {}
 
-  async ngOnInit() {
-    this.topicId =
-      this.route.snapshot.paramMap.get('id') || '';
+  async ngOnInit(): Promise<void> {
+    this.topicId = this.route.snapshot.paramMap.get('id') || '';
 
-    if (!this.topicId) {
-      return;
+    if (this.topicId && (await this.loadTopic())) {
+      await this.loadCards();
     }
 
-    await this.loadTopic();
-    await this.loadCards();
-
-    this.changeDetectorRef.detectChanges();
+    this.loading = false;
+    this.update();
   }
 
-  private async loadTopic() {
+  ngOnDestroy(): void {
+    this.destroyed = true;
+  }
+
+  private update(): void {
+    if (!this.destroyed) {
+      this.changeDetectorRef.detectChanges();
+    }
+  }
+
+  private changeCard(change: () => void): void {
+    const flashcard =
+      this.host.nativeElement.querySelector<HTMLElement>('.flashcard');
+
+    if (flashcard) {
+      flashcard.style.transition = 'none';
+    }
+
+    this.isFlipped = false;
+
+    change();
+    this.update();
+
+    if (flashcard) {
+      void flashcard.offsetWidth;
+      flashcard.style.transition = '';
+    }
+  }
+
+  private async loadTopic(): Promise<boolean> {
     try {
       const topics = await this.dataService.getTopics();
+      const topic = topics.find(item => item.id === this.topicId);
 
-      const topic = topics.find(
-        topic => topic.id === this.topicId
-      );
-
-      if (topic) {
-        this.topicName = topic.name;
+      if (!topic) {
+        return false;
       }
 
+      this.topicName = topic.name;
     } catch (error) {
       console.error('LOAD TOPIC ERROR:', error);
     }
+
+    return true;
   }
 
-  private async loadCards() {
+  private async loadCards(): Promise<void> {
     try {
-      const cards = await this.dataService.getCards(
-        this.topicId
-      );
+      const cards = await this.dataService.getCards(this.topicId);
 
-      this.allCards = [...cards];
-      this.cards = [...cards];
-
-      console.log('CARDS:', this.cards);
-      console.log('CARDS COUNT:', this.cards.length);
-
+      this.allCards = cards.map(card => ({ ...card }));
+      this.cards = [...this.allCards];
     } catch (error) {
       console.error('LOAD CARDS ERROR:', error);
     }
@@ -82,14 +110,13 @@ export class Cards {
   get currentCard(): Card | undefined {
     return this.cards[this.currentIndex];
   }
+
   get nextCardPreview(): Card | undefined {
-return this.cards[this.currentIndex + 1];
-}
+    return this.cards[this.currentIndex + 1];
+  }
 
   get learnedCount(): number {
-    return this.allCards.filter(
-      card => card.learned
-    ).length;
+    return this.allCards.filter(card => card.learned).length;
   }
 
   get progress(): number {
@@ -97,170 +124,134 @@ return this.cards[this.currentIndex + 1];
       return 0;
     }
 
-    return Math.round(
-      (this.learnedCount / this.allCards.length) * 100
-    );
+    return Math.round((this.learnedCount / this.allCards.length) * 100);
   }
 
-  /**
-   * Wechselt die Richtung der Karten:
-   *
-   * Normal:
-   * Frage → Antwort
-   *
-   * Umgekehrt:
-   * Antwort → Frage
-   */
   toggleLanguage(): void {
-    this.isReversed = !this.isReversed;
-
-    // Nach dem Wechsel immer wieder die Vorderseite anzeigen
-    this.isFlipped = false;
-
-    this.changeDetectorRef.detectChanges();
+    this.changeCard(() => {
+      this.isReversed = !this.isReversed;
+    });
   }
 
   flipCard(): void {
-    if (!this.isFinished && this.currentCard) {
+    if (!this.isFinished && !this.busy && this.currentCard) {
       this.isFlipped = !this.isFlipped;
     }
   }
 
-  async markNotLearned(): Promise<void> {
-    if (!this.currentCard) {
+  markNotLearned(): Promise<void> {
+    return this.mark(false);
+  }
+
+  markLearned(): Promise<void> {
+    return this.mark(true);
+  }
+
+  private async mark(learned: boolean): Promise<void> {
+    const card = this.currentCard;
+
+    if (!card || this.busy || this.isFinished) {
       return;
     }
 
-    this.currentCard.learned = false;
+    this.busy = true;
+
+    const previous = card.learned;
+
+    card.learned = learned;
 
     try {
-      await this.dataService.setCardLearned(
-        this.topicId,
-        this.currentCard.id,
-        false
-      );
+      await this.dataService.setCardLearned(this.topicId, card.id, learned);
 
-      this.nextCard();
-      this.changeDetectorRef.detectChanges();
-
+      this.changeCard(() => {
+        if (this.currentIndex < this.cards.length - 1) {
+          this.currentIndex++;
+        } else {
+          this.isFinished = true;
+        }
+      });
     } catch (error) {
-      console.error('MARK NOT LEARNED ERROR:', error);
-    }
-  }
+      card.learned = previous;
 
-  async markLearned(): Promise<void> {
-    if (!this.currentCard) {
-      return;
-    }
-
-    this.currentCard.learned = true;
-
-    try {
-      await this.dataService.setCardLearned(
-        this.topicId,
-        this.currentCard.id,
-        true
-      );
-
-      this.nextCard();
-      this.changeDetectorRef.detectChanges();
-
-    } catch (error) {
-      console.error('MARK LEARNED ERROR:', error);
-    }
-  }
-
-  private nextCard(): void {
-    this.isFlipped = false;
-
-    if (this.currentIndex < this.cards.length - 1) {
-      this.currentIndex++;
-    } else {
-      this.isFinished = true;
+      console.error('MARK CARD ERROR:', error);
+    } finally {
+      this.busy = false;
+      this.update();
     }
   }
 
   previousCard(): void {
-    if (
-      this.currentIndex <= 0 ||
-      this.isFinished
-    ) {
+    if (this.currentIndex <= 0 || this.isFinished || this.busy) {
       return;
     }
 
-    this.currentIndex--;
-    this.isFlipped = false;
-
-    this.changeDetectorRef.detectChanges();
+    this.changeCard(() => {
+      this.currentIndex--;
+    });
   }
 
   shuffleCards(): void {
-    if (this.cards.length <= 1) {
+    if (this.cards.length <= 1 || this.busy) {
       return;
     }
 
-    for (
-      let i = this.cards.length - 1;
-      i > 0;
-      i--
-    ) {
-      const j =
-        Math.floor(Math.random() * (i + 1));
+    const shuffled = [...this.cards];
 
-      [this.cards[i], this.cards[j]] = [
-        this.cards[j],
-        this.cards[i]
-      ];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
-    this.currentIndex = 0;
-    this.isFlipped = false;
-    this.isFinished = false;
-
-    this.changeDetectorRef.detectChanges();
+    this.changeCard(() => {
+      this.cards = shuffled;
+      this.currentIndex = 0;
+      this.isFinished = false;
+    });
   }
 
   async restart(): Promise<void> {
-    this.allCards.forEach(card => {
-      card.learned = false;
-    });
+    if (this.busy) {
+      return;
+    }
+
+    this.busy = true;
 
     try {
-      for (const card of this.allCards) {
-        await this.dataService.setCardLearned(
-          this.topicId,
-          card.id,
-          false
-        );
-      }
+      const learnedIds = this.allCards
+        .filter(card => card.learned)
+        .map(card => card.id);
 
-      this.cards = [...this.allCards];
-      this.currentIndex = 0;
-      this.isFlipped = false;
-      this.isFinished = false;
+      await this.dataService.setCardsLearned(this.topicId, learnedIds, false);
 
-      this.changeDetectorRef.detectChanges();
+      this.allCards.forEach(card => {
+        card.learned = false;
+      });
 
+      this.changeCard(() => {
+        this.cards = [...this.allCards];
+        this.currentIndex = 0;
+        this.isFinished = false;
+      });
     } catch (error) {
       console.error('RESTART ERROR:', error);
+    } finally {
+      this.busy = false;
+      this.update();
     }
   }
 
   continueUnknown(): void {
-    const unknownCards =
-      this.allCards.filter(
-        card => !card.learned
-      );
+    const unknownCards = this.allCards.filter(card => !card.learned);
 
     if (unknownCards.length === 0) {
       return;
     }
 
-    this.cards = [...unknownCards];
-    this.currentIndex = 0;
-    this.isFlipped = false;
-    this.isFinished = false;
-
-    this.changeDetectorRef.detectChanges();
+    this.changeCard(() => {
+      this.cards = unknownCards;
+      this.currentIndex = 0;
+      this.isFinished = false;
+    });
   }
 }
