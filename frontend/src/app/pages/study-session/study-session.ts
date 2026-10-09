@@ -611,15 +611,15 @@ export class StudySession implements OnInit, OnDestroy {
     return answer.trim().toLowerCase().replace(/\s+/g, ' ');
   }
 
-  private shuffle<T>(items: T[]): T[] {
-    const result = [...items];
+private shuffle(items: any[]): any[] {
+  const result = [...items];
 
-    for (let i = result.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
 
-      [result[i], result[j]] = [result[j], result[i]];
-    }
-
-    return result;
+    [result[i], result[j]] = [result[j], result[i]];
   }
+
+  return result;
+}
 }
